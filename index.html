@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KALAM DIGITAL DASHBOARD - PREMIUM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root { 
+            --primary: #2563eb; 
+            --pink-glow: #ff00ff; 
+            --bg: #0f172a; 
+            --text: #ffffff; 
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --inner-card: #111827;
+        }
+
+        /* Light Mode Variables */
+        .light-theme {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --card-bg: rgba(15, 23, 42, 0.05);
+            --inner-card: #ffffff;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 0; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        #dashboard-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at center, var(--inner-card) 0%, var(--bg) 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 60px 0; box-sizing: border-box;
+        }
+
+        .dash-header { margin-bottom: 40px; text-align: center; }
+        .dash-header h1 { font-size: 3rem; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .dash-header p { color: #94a3b8; font-size: 1.1rem; margin-top: 10px; }
+        .light-theme .dash-header p { color: #64748b; }
+
+        .dash-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px; 
+            max-width: 1400px; 
+            width: 90%; 
+            padding: 20px;
+        }
+
+        .dash-card {
+            position: relative;
+            background: var(--card-bg);
+            padding: 30px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            z-index: 1;
+        }
+        .light-theme .dash-card { border: 1px solid rgba(0, 0, 0, 0.05); }
+
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            width: 170%;
+            height: 170%;
+            background: conic-gradient(transparent, var(--primary), var(--pink-glow), transparent 40%);
+            animation: rotateGlow 4s linear infinite;
+            z-index: -2;
+            top: -35%; left: -35%;
+        }
+
+        .dash-card::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            background: var(--inner-card); 
+            border-radius: 17px;
+            z-index: -1;
+            transition: background 0.3s ease;
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .dash-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.6); 
+            border-color: var(--primary);
+        }
+
+        .dash-card i { font-size: 2.5rem; color: var(--primary); transition: 0.3s; }
+        .dash-card:hover i { color: var(--pink-glow); transform: scale(1.1); }
+        .dash-card h3 { margin: 0; font-size: 1.1rem; color: var(--text); font-weight: 600; }
+
+        #main-content { display: none; padding: 50px 20px; text-align: center; }
+
+        /* ==========================================
+           RESUME MAKER STYLING - FIXED PRINT ENGINES
+           ========================================== */
+        #resume-maker-content {
+            display: none;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f1f5f9;
+            color: #000000;
+            padding: 24px 8px;
+            transition: background 0.3s ease;
+        }
+        .light-theme #resume-maker-content { background-color: #e2e8f0; }
+
+        .a4-document-sheet {
+            font-family: 'Arial', sans-serif;
+            color: #000000 !important;
+            background-color: #ffffff !important;
+            width: 210mm;
+            min-height: 296mm;
+            max-height: 296mm;
+            padding: 10mm 15mm;
+            box-sizing: border-box;
+            text-align: left;
+            line-height: 1.35;
+            overflow: hidden;
+        }
+        .main-resume-title {
+            font-size: 24pt !important;
+            font-weight: 900 !important;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #000000 !important;
+            border-bottom: 3px solid #000000 !important;
+            padding-bottom: 2px;
+            display: inline-block;
+        }
+        .strip-title-header {
+            background-color: #e5e7eb !important;
+            font-weight: 800 !important;
+            font-size: 11pt !important;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            letter-spacing: 0.8px;
+            color: #000000 !important;
+            border-left: 6px solid #000000 !important;
+        }
+        .cv-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+        .cv-data-table th, .cv-data-table td {
+            border: 1.5px solid #000000 !important;
+            padding: 4px 8px;
+            font-size: 10pt !important;
+            color: #000000 !important;
+            vertical-align: middle;
+        }
+        .cv-data-table th {
+            font-weight: bold;
+            background-color: #f3f4f6 !important;
+            text-transform: uppercase;
+        }
+        
+        /* Form inputs styling updates for Theme Toggle */
+        .form-card-bg { transition: all 0.3s ease; }
+        .form-input-field {
+            width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; font-size: 15px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease-in-out;
+        }
+        .light-theme .form-card-bg { background-color: #ffffff !important; color: #0f172a !important; }
+        .light-theme .form-label { color: #334155 !important; }
+        
+        .form-input-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+        .sleek-entry-field {
+            width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease;
+        }
+        .sleek-entry-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .form-label { display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+        .required-star { color: #ef4444; margin-left: 2px; }
+        
+        /* SYSTEM PRINT CORRECTIONS - STRICT SINGLE PAGE FORCE */
+        @media print {
+            @page { size: A4 portrait; margin: 0mm !important; }
+            html, body {
+                background: #ffffff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+            #dashboard-overlay, #main-content, #mainWebsiteWrapper, #livePreviewBoxHeader, #resume-maker-content, #cash-counter-btn, #cash-counter-modal, .theme-toggle-btn { display: none !important; }
+            
+            #print-engine-secure-zone {
+                display: block !important; 
+                width: 210mm !important; 
+                height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 12mm 15mm !important; 
+                box-sizing: border-box !important; 
+                background: #ffffff !important; 
+                overflow: hidden !important; 
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+            }
+            #print-engine-secure-zone * {
+                color: #000000 !important;
+            }
+        }
+
+        @media screen {
+            #print-engine-secure-zone { display: none !important; }
+            .preview-scroll-container { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid #cbd5e1; background-color: #e2e8f0; padding: 24px 16px; }
+            .a4-document-sheet { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); margin: 0 auto; }
+        }
+
+        /* CASH COUNTER BUTTON GLOW EFFECT */
+        #cash-counter-btn {
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(37, 99, 235, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+        }
+
+        /* Floating Theme Switcher Style */
+        .theme-toggle-btn {
+            fixed: top 1.5rem right 1.5rem;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<button onclick="toggleThemeMode()" class="theme-toggle-btn fixed top-4 right-4 z-50 bg-slate-800 text-white p-3 rounded-full border border-slate-700 shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center">
+    <i id="theme-icon" class="fa fa-sun text-xl text-yellow-400"></i>
+</button>
+
+<div id="dashboard-overlay">
+    <div class="dash-header">
+        <h1>KALAM DIGITAL SEVA</h1>
+        <p>Premium Digital Tools for Jan Seva Kendra</p>
+    </div>
+
+    <div class="dash-grid">
+        <div class="dash-card" onclick="openEditor()">
+            <i class="fa fa-camera-retro"></i>
+            <h3>Photo Editor Pro</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://connect.csc.gov.in/account/authorize?response_type=code&client_id=0f8ca686-5a31-46b8-bb51-d9834ba9fa9d&redirect_uri=https%3A%2F%2Fdigitalseva.csc.gov.in%2Fauth%2Fcallback%2F&state=67128', '_blank')">
+            <i class="fa fa-university"></i>
+            <h3>Digital Seva (CSC)</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://ewallet.uppcl.org/login', '_blank')">
+            <i class="fa fa-wallet"></i>
+            <h3>E-Wallet (UPPCL)</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://uppcl.vayamtech.com/login.php', '_blank')">
+            <i class="fa fa-bolt"></i>
+            <h3>UPPCL Vayamtech</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://myaadhaar.uidai.gov.in/en_IN', '_blank')">
+            <i class="fa fa-id-card"></i>
+            <h3>Aadhar Services</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://onlineservices.proteantech.in/paam/endUserRegisterContact.html', '_blank')">
+            <i class="fa fa-file-invoice"></i>
+            <h3>PAN Card Center</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://v2022.paypointindia.co.in/Account/Login', '_blank')">
+            <i class="fa fa-fingerprint"></i>
+            <h3>AEPS PAYPOINT</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://edistrict.up.gov.in/edistrict/login/login.aspx?Xpr$lgnp=FzGSwZphiQdLTgmeLVWK8PnkHNxBD6qT', '_blank')">
+            <i class="fa fa-file-signature"></i>
+            <h3>E-District (UP)</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://voters.eci.gov.in/login', '_blank')">
+            <i class="fa fa-address-card"></i>
+            <h3>Voter ID</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://www.passportindia.gov.in/psp', '_blank')">
+            <i class="fa fa-passport"></i>
+            <h3>Passport Services</h3>
+        </div>
+
+        <div class="dash-card" onclick="window.open('https://www.irctc.co.in/nget/train-search', '_blank')">
+            <i class="fa fa-train"></i>
+            <h3>रेलवे टिकट (IRCTC)</h3>
+        </div>
+
+        <div class="dash-card" onclick="openResumeMaker()">
+            <i class="fa fa-file-user"></i>
+            <h3>Resume Maker</h3>
+        </div>
+
+        <div class="dash-card" onclick="location.reload()">
+            <i class="fa fa-sync"></i>
+            <h3>Refresh Dashboard</h3>
+        </div>
+    </div>
+</div>
+
+<div id="main-content">
+    <h2 class="text-white light-theme:text-slate-800" style="font-size: 2rem;">Editor Loading...</h2>
+    <p style="color:#64748b;">This feature will be integrated soon.</p>
+    <br>
+    <button onclick="location.reload()" style="padding:12px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor:pointer; font-weight: bold;">Back to Dashboard</button>
+</div>
+
+<div id="resume-maker-content">
+    <div class="mb-6 max-w-4xl mx-auto pl-2">
+        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-md">
+            ⬅ Back to Dashboard
+        </button>
+    </div>
+
+    <div id="mainWebsiteWrapper" class="max-w-4xl mx-auto space-y-6 md:space-y-10">
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl sm:text-5xl font-bold text-slate-900 tracking-tight dark-toggle-text">
+                Create Your <span class="text-blue-600">Resume/CV</span>
+            </h1>
+            <p class="text-slate-500 text-sm sm:text-base">Enter details to generate your high definition resume instant preview</p>
+        </div>
+
+        <div id="mainFormCard" class="bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xl space-y-6 md:space-y-8 form-card-bg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                    <label class="form-label">Document Heading <span class="required-star">*</span></label>
+                    <select id="inputHeading" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer font-medium">
+                        <option value="RESUME">RESUME</option>
+                        <option value="CURRICULUM VITAE">CURRICULUM VITAE</option>
+                        <option value="BIO-DATA">BIO-DATA</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Layout Format <span class="required-star">*</span></label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" id="btnWithPhoto" onclick="setPhotoOption('withPhoto')" class="flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md">
+                            📷 With Photo
+                        </button>
+                        <button type="button" id="btnWithoutPhoto" onclick="setPhotoOption('withoutPhoto')" class="flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50">
+                            📄 No Photo
+                        </button>
+                    </div>
+                    <input type="hidden" id="inputPhotoOption" value="withPhoto">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                    <label class="form-label">Full Name <span class="required-star">*</span></label>
+                    <input type="text" id="inputName" oninput="updateLivePreview()" placeholder="Enter full name here" class="form-input-field">
+                </div>
+                <div>
+                    <label class="form-label">House No. / Gali / Mark <span class="required-star">*</span></label>
+                    <input type="text" id="inputHouse" oninput="updateLivePreview()" placeholder="Enter house no. or address landmark mark" class="form-input-field">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                    <label class="form-label">Landmark / Near by Location</label>
+                    <input type="text" id="inputLandmark" oninput="updateLivePreview()" placeholder="Enter nearby prominent landmark" class="form-input-field">
+                </div>
+                <div>
+                    <label class="form-label">Area / Locality / Village <span class="required-star">*</span></label>
+                    <input type="text" id="inputArea" oninput="updateLivePreview()" placeholder="Enter village or locality area name" class="form-input-field">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                <div>
+                    <label class="form-label">State & City <span class="required-star">*</span></label>
+                    <input type="text" id="inputCity" oninput="updateLivePreview()" placeholder="e.g. Delhi, New Delhi" class="form-input-field">
+                </div>
+                <div>
+                    <label class="form-label">Pincode <span class="required-star">*</span></label>
+                    <input type="text" id="inputPincode" oninput="updateLivePreview()" placeholder="Enter 6-digit pin code" class="form-input-field">
+                </div>
+                <div>
+                    <label class="form-label">Mobile Number <span class="required-star">*</span></label>
+                    <input type="text" id="inputPhone" oninput="updateLivePreview()" placeholder="Enter mobile number" class="form-input-field">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">Email Address</label>
+                <input type="email" id="inputEmail" oninput="updateLivePreview()" placeholder="Enter email address" class="form-input-field">
+            </div>
+
+            <div id="photoUploadWrapper" class="border-t border-slate-100 pt-6">
+                <div class="flex flex-col sm:flex-row items-center gap-5">
+                    <div class="w-[120px] h-[140px] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-inner shrink-0">
+                        <img id="previewAvatar" src="#" class="w-full h-full object-cover hidden">
+                        <svg id="fallbackIcon" class="w-16 h-16 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>
+                    <div class="space-y-2 text-center sm:text-left">
+                        <label class="inline-block bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold py-2.5 px-5 rounded-xl cursor-pointer transition shadow-sm">
+                            Choose Passport Photo
+                            <input type="file" accept="image/*" onchange="processImageStream(event)" class="hidden">
+                        </label>
+                        <p class="text-xs text-slate-400">Supported formats: JPG, PNG.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6">
+                <label class="form-label">Career Objective</label>
+                <select id="selectObjective" onchange="applyObjectiveSnippet()" class="form-input-field appearance-none cursor-pointer mb-3 font-medium text-slate-600">
+                    <option value="">-- Choose from Ready-made Professional Snippets --</option>
+                    <option value="To make contribution in the organization with best of my ability and also to Develop new skills during the interaction to achieve new heights.">Professional Growth Statement</option>
+                    <option value="To secure a challenging position in a reputable organization to utilize my training and skills while making a significant contribution to the success of the company.">Entry-Level Career Target</option>
+                </select>
+                <textarea id="textObjective" oninput="updateLivePreview()" rows="3" placeholder="Write or edit your custom career goal statement here..." class="form-input-field"></textarea>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6 space-y-3">
+                <label class="form-label !mb-0">Academic Qualifications</label>
+                <div id="wrapperQualification" class="space-y-3"></div>
+                <button type="button" onclick="appendQualificationBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                    ➕ Add Qualification Row
+                </button>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6 space-y-3">
+                <label class="form-label !mb-0">Other Skills / Qualifications</label>
+                <div id="wrapperOther" class="space-y-2"></div>
+                <button type="button" onclick="appendOtherBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                    ➕ Add Skills Point
+                </button>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6 space-y-3">
+                <label class="form-label !mb-0">Work Experience</label>
+                <div id="wrapperExperience" class="space-y-2"></div>
+                <button type="button" onclick="appendExperienceBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                    ➕ Add Experience Point
+                </button>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6 space-y-6">
+                <label class="form-label !mb-0 text-base border-b border-slate-100 pb-2 text-slate-800">Personal Information Details</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Gender <span class="required-star">*</span></label>
+                        <select id="inputGender" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Father's Name <span class="required-star">*</span></label>
+                        <input type="text" id="inputFather" oninput="updateLivePreview()" placeholder="Father's Full Name" class="form-input-field">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Date of Birth <span class="required-star">*</span></label>
+                        <input type="date" id="inputDob" onchange="updateLivePreview()" class="form-input-field">
+                    </div>
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Languages Known <span class="required-star">*</span></label>
+                        <input type="text" id="inputLang" oninput="updateLivePreview()" placeholder="e.g. Hindi & English" class="form-input-field">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Nationality <span class="required-star">*</span></label>
+                        <input type="text" id="inputNationality" oninput="updateLivePreview()" value="Indian" class="form-input-field">
+                    </div>
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Marital Status <span class="required-star">*</span></label>
+                        <select id="inputMarital" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer">
+                            <option value="">-- Select Status --</option>
+                            <option value="Unmarried">Unmarried</option>
+                            <option value="Married">Married</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label class="form-label text-xs !text-slate-500">Resume Date <span class="text-xs text-slate-500 font-normal">(Current Date by Default)</span></label>
+                        <input type="date" id="inputResumeDate" onchange="updateLivePreview()" class="form-input-field">
+                    </div>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-6 flex flex-col sm:flex-row gap-4">
+                <button type="button" onclick="generateHDPrint()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-blue-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
+                    🖨️ Create & Print Resume (HD)
+                </button>
+                <button type="button" onclick="exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
+                    📥 Download PDF File
+                </button>
+            </div>
+        </div>
+
+        <div id="livePreviewBoxHeader" class="w-full space-y-4">
+            <h2 class="text-slate-800 text-xl font-bold flex items-center gap-2 pl-1 dark-toggle-text">
+                <span>📄</span> Live A4 Document Digital Preview
+            </h2>
+            
+            <div class="preview-scroll-container">
+                <div id="isolatedPrintWrapper">
+                    <div id="mainPrintSheetCanvas" class="a4-document-sheet">
+                        <div class="text-center mb-3">
+                            <h1 id="outHeading" class="main-resume-title">RESUME</h1>
+                        </div>
+
+                        <div class="flex justify-between items-start gap-4">
+                            <div class="space-y-1 text-black min-h-[90px] w-full">
+                                <h2 id="outName" class="text-xl font-extrabold uppercase tracking-tight" style="color: #000000 !important; margin-bottom: 2px;"></h2>
+                                <div class="text-black font-semibold text-sm leading-normal">
+                                    <span id="outAddressLine"></span>
+                                </div>
+                                <div class="pt-0.5 text-sm text-black font-bold">
+                                    <p id="outPhone" style="margin:0;"></p>
+                                    <p id="outEmail" style="margin:0;"></p>
+                                </div>
+                            </div>
+
+                            <div id="outPhotoContainer" class="w-[30mm] h-[37mm] border-2 border-black overflow-hidden flex items-center justify-center bg-gray-50 shrink-0">
+                                <img id="outPhoto" src="#" class="w-full h-full object-cover hidden">
+                                <span id="outPhotoFallback" class="text-[10px] text-gray-400 text-center font-bold px-1">Passport Photo</span>
+                            </div>
+                        </div>
+
+                        <hr class="border-t-2 border-black my-2.5">
+
+                        <div id="sectionObjective" class="hidden">
+                            <div class="strip-title-header">CAREER OBJECTIVE</div>
+                            <p id="outObjective" class="text-sm leading-relaxed text-justify pl-1 text-black font-semibold"></p>
+                        </div>
+
+                        <div id="sectionQualification" class="hidden">
+                            <div class="strip-title-header">ACADEMIC QUALIFICATION</div>
+                            <table class="cv-data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-[10%] text-center font-black">S.No.</th>
+                                        <th class="w-[35%] text-left font-black">Qualification</th>
+                                        <th class="w-[30%] text-left font-black">University / Board</th>
+                                        <th class="w-[15%] text-center font-black">Year</th>
+                                        <th class="w-[10%] text-center font-black">Per %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outQualTable" class="font-bold"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="sectionOtherQual" class="hidden">
+                            <div class="strip-title-header">OTHER QUALIFICATION</div>
+                            <ul id="outOtherQual" class="list-disc pl-6 text-sm font-bold space-y-1 uppercase text-black"></ul>
+                        </div>
+
+                        <div id="sectionExperience" class="hidden">
+                            <div class="strip-title-header">WORK EXPERIENCE</div>
+                            <ul id="outExperience" class="list-disc pl-6 text-sm font-bold space-y-1 uppercase text-black"></ul>
+                        </div>
+
+                        <div id="sectionPersonalInfo" class="hidden">
+                            <div class="strip-title-header">PERSONAL INFORMATION</div>
+                            <table class="w-full text-sm font-bold leading-normal text-black">
+                                <tbody>
+                                    <tr id="rowFather" class="hidden">
+                                        <td class="w-[28%] py-0.5 text-left">Father's Name</td>
+                                        <td class="w-[4%] py-0.5 text-center">:</td>
+                                        <td id="outFatherName" class="w-[68%] py-0.5 uppercase text-left font-extrabold"></td>
+                                    </tr>
+                                    <tr id="rowDob" class="hidden">
+                                        <td class="py-0.5 text-left">Date of Birth</td>
+                                        <td class="text-center py-0.5">:</td>
+                                        <td id="outDob" class="py-0.5 text-left font-extrabold"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-0.5 text-left">Language Known</td>
+                                        <td class="text-center py-0.5">:</td>
+                                        <td id="outLanguage" class="py-0.5 uppercase text-left font-extrabold"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-0.5 text-left">Gender</td>
+                                        <td class="text-center py-0.5">:</td>
+                                        <td id="outGender" class="py-0.5 uppercase text-left font-extrabold"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-0.5 text-left">Nationality</td>
+                                        <td class="text-center py-0.5">:</td>
+                                        <td id="outNationality" class="py-0.5 uppercase text-left font-extrabold"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-0.5 text-left">Marital Status</td>
+                                        <td class="text-center py-0.5">:</td>
+                                        <td id="outMarital" class="py-0.5 uppercase text-left font-extrabold"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="sectionDeclaration" class="hidden">
+                            <div class="strip-title-header">DECLARATION</div>
+                            <p class="text-sm font-bold leading-relaxed pl-1 text-justify text-black">
+                                I hereby declared that the above information given by me is true to best of my Knowledge.
+                            </p>
+                        </div>
+
+                        <div id="sectionFooter" class="hidden flex justify-between items-end pt-6 text-sm font-black text-black">
+                            <div class="space-y-1">
+                                <div>Date : <span id="outDateStamp" class="font-semibold"></span></div>
+                                <div>Place : <span id="outPlaceStamp" class="font-black uppercase"></span></div>
+                            </div>
+                            <div class="text-right">
+                                <span id="outSignatureName" class="block font-black"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="cash-counter-btn" onclick="toggleCashCounter()" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white font-bold rounded-full p-4 sm:px-6 sm:py-4 flex items-center gap-3 shadow-2xl hover:scale-110 transition duration-300">
+    <i class="fa fa-calculator text-xl sm:text-2xl"></i>
+    <span class="hidden sm:inline text-sm tracking-wide uppercase">Cash Counter</span>
+</button>
+
+<div id="cash-counter-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
+        
+        <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+            <h2 class="text-xl font-black text-white tracking-wide uppercase flex items-center gap-2">
+                <i class="fa fa-wallet text-blue-500"></i> Cash Calculator
+            </h2>
+            <button onclick="toggleCashCounter()" class="text-slate-400 hover:text-white font-bold text-xl px-2 cursor-pointer">✕</button>
+        </div>
+
+        <div class="overflow-y-auto pr-1 space-y-3 flex-1">
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 2000</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note2000" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res2000">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 500</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note500" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res500">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 200</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note200" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res200">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 100</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note100" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res100">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 50</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note50" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res50">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 20</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note20" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res20">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 10</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note10" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res10">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 5</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note5" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res5">₹0</div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+                <div class="col-span-3 font-bold text-right text-slate-300">₹ 2 / 1</div>
+                <div class="col-span-1 text-center text-slate-500">✕</div>
+                <div class="col-span-4"><input type="number" min="0" id="note1" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-1 text-center text-slate-500">=</div>
+                <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res1">₹0</div>
+            </div>
+        </div>
+
+        <div class="mt-4 border-t border-slate-800 pt-4 bg-slate-950 p-4 rounded-2xl flex justify-between items-center">
+            <button onclick="resetCashCounter()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wide transition">Reset All</button>
+            <div class="text-right">
+                <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Grand Total</span>
+                <span class="text-xl sm:text-2xl font-black text-yellow-400 font-mono" id="grandTotalCash">₹ 0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize default resume date on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('inputResumeDate').value = `${yyyy}-${mm}-${dd}`;
+    });
+
+    // Theme Toggle Logic
+    function toggleThemeMode() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        const mainFormCard = document.getElementById('mainFormCard');
+        const textElements = document.querySelectorAll('.dark-toggle-text');
+        
+        body.classList.toggle('light-theme');
+        
+        if(body.classList.contains('light-theme')) {
+            themeIcon.className = "fa fa-moon text-xl text-indigo-200";
+            themeIcon.parentElement.classList.remove('bg-slate-800', 'text-white');
+            themeIcon.parentElement.classList.add('bg-white', 'text-slate-800', 'border-slate-300');
+            
+            // Adjust Resume Creator form layout card for Light Mode
+            if(mainFormCard) {
+                mainFormCard.classList.remove('bg-white');
+                mainFormCard.classList.add('bg-slate-100/90', 'border-slate-300');
+            }
+            textElements.forEach(el => el.style.color = '#0f172a');
+        } else {
+            themeIcon.className = "fa fa-sun text-xl text-yellow-400";
+            themeIcon.parentElement.classList.remove('bg-white', 'text-slate-800', 'border-slate-300');
+            themeIcon.parentElement.classList.add('bg-slate-800', 'text-white');
+            
+            if(mainFormCard) {
+                mainFormCard.classList.remove('bg-slate-100/90', 'border-slate-300');
+                mainFormCard.classList.add('bg-white');
+            }
+            textElements.forEach(el => el.style.color = '');
+        }
+    }
+
+    // UPGRADED FUNCTION: Opens your full Photo & Aadhar Editor code instantly in a New Tab
+    function openEditor() {
+        const editorCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KALAM PHOTO & AADHAR EDITOR PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #f1f5f9; --text: #1e293b; --aadhar-accent: #ff9933; --success: #10b981; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 20px; 
+            overflow-x: hidden;
+        }
+
+        .bg-scrolling-container { position: fixed; top: 50%; left: 0; width: 100%; transform: translateY(-50%); z-index: -1; pointer-events: none; opacity: 0.15; }
+        .scrolling-text { font-size: 10vw; font-weight: 900; white-space: nowrap; text-transform: uppercase; color: #000; display: inline-block; animation: slowScroll 25s linear infinite; }
+        @keyframes slowScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .corner-brand { position: fixed; bottom: 20px; right: 20px; background: #000; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 800; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; gap: 10px; border: 2px solid rgba(255,255,255,0.1); }
+
+        .card { 
+            background: rgba(255, 255, 255, 0.97); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+            max-width: 500px; 
+            margin: auto; 
+            text-align: center; 
+            position: relative; 
+            z-index: 10;
+            border-top: 6px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .card.aadhar-mode { border-top-color: var(--aadhar-accent); }
+
+        header h2 { margin: 0 0 20px; color: var(--primary); font-weight: 900; }
+        .aadhar-mode header h2 { color: var(--aadhar-accent); }
+        
+        label { display: block; text-align: left; font-size: 13px; font-weight: 600; margin: 10px 0 5px; color: #64748b; }
+        input, select, button { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 14px; margin-bottom: 5px; }
+        
+        button.main-btn { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .aadhar-mode button.main-btn { background: var(--aadhar-accent); }
+        button.main-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .adjust-btn { background: var(--primary); color: white; border: none; margin-top: 10px; cursor: pointer; display: none; font-weight: 600; transition: 0.3s; }
+        .adjust-btn:hover { opacity: 0.9; }
+
+        .upload-row-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .upload-row-box input[type="file"] {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .append-indicator-toggle {
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 45px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .append-indicator-toggle::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15%;
+            height: 70%;
+            width: 2px;
+            background-color: #cbd5e1;
+        }
+        .append-indicator-toggle .status-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #dc2626; 
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        .append-indicator-toggle.active {
+            background-color: #f0fdf4;
+            border-color: var(--success);
+        }
+        .append-indicator-toggle.active .status-dot {
+            background-color: var(--success); 
+        }
+
+        #editor-section { display: none; margin-top: 15px; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; }
+        .cropper-box { width: 100%; height: 280px; background: #000; overflow: hidden; }
+        
+        .tool-btn { padding: 8px; background: #f1f5f9; border: 1px solid #ccc; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
+        .input-group-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        canvas { max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 20px; background: #fff; display: none; margin-left: auto; margin-right: auto; box-shadow: 0 0 20px rgba(0,0,0,0.1); image-rendering: high-quality; }
+        
+        @media print {
+            @page { size: A4; margin: 0; }
+            body * { display: none !important; }
+            canvas { display: block !important; position: fixed; top: 0; left: 0; width: 100% !important; border: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scrolling-container">
+    <div class="scrolling-text">KALAM JAN SEVA KENDRA &nbsp;&nbsp;•&nbsp;&nbsp; KALAM JAN SEVA KENDRA</div>
+</div>
+
+<div class="corner-brand"><i class="fa fa-university"></i> KALAM JAN SEVA KENDRA</div>
+
+<div class="card" id="mainCard">
+    <header><h2 id="headerTitle">KALAM PHOTO EDITOR</h2></header>
+
+    <label>Work Mode Select Karein</label>
+    <select id="workMode" onchange="toggleMode()">
+        <option value="passport" selected>Passport Photo Mode (All Sizes)</option>
+        <option value="aadhar">Aadhar Card Mode (Smart Crop)</option>
+    </select>
+    
+    <label id="uploadLabel">Step 1: Upload Photo</label>
+    <div class="upload-row-box">
+        <input type="file" id="upload" accept="image/*,application/pdf">
+        <div class="append-indicator-toggle" id="appendIndicator" onclick="toggleAppendState()">
+            <div class="status-dot"></div>
+        </div>
+    </div>
+
+    <button id="show-adjuster" class="adjust-btn" onclick="toggleAdjuster()"><i class="fa fa-crop"></i> Adjust Photo</button>
+
+    <div id="editor-section">
+        <div class="cropper-box"><img id="image-preview"></div>
+        <div style="display: flex; gap: 5px; margin-top: 10px;">
+            <button class="tool-btn" onclick="zoom(0.1)"><i class="fa fa-plus"></i></button>
+            <button class="tool-btn" onclick="zoom(-0.1)"><i class="fa fa-minus"></i></button>
+            <button class="tool-btn" onclick="rotate(-90)"><i class="fa fa-rotate-left"></i></button>
+            <button class="tool-btn" onclick="rotate(90)"><i class="fa fa-rotate-right"></i></button>
+        </div>
+    </div>
+    
+    <div id="passportSettings">
+        <label>Step 2: Photos per Row</label>
+        <select id="cols">
+            <option value="1">1 Photo</option>
+            <option value="2">2 Photos</option>
+            <option value="4">4 Photos</option>
+            <option value="6" selected>6 Photos</option>
+        </select>
+
+        <div class="input-group-row">
+            <div><label>Step 3: Total Photos</label><input type="number" id="qty" value="6"></div>
+            <div><label>Gap (px)</label><input type="number" id="gap" value="20"></div>
+        </div>
+
+        <label>Step 4: Select Photo Size</label>
+        <select id="photo-size" onchange="updateCropRatio()">
+            <option value="380,480">Passport Size (3.5 x 4.5 cm)</option>
+            <option value="1181,1772">Postcard Size (4 x 6 in)</option>
+            <option value="637,1011">ID Card Photo (5.4 x 8.6 cm)</option>
+            <option value="2480,3508">A4 Full Size Photo</option>
+            <option value="236,295">Stamp Size (2 x 2.5 cm)</option>
+            <option value="413,413">Visa Photo (3.5 x 3.5 cm)</option>
+            <option value="1417,2126">Cabinet Size (12 x 18 cm)</option>
+        </select>
+    </div>
+
+    <button class="main-btn" onclick="generateSheet()">Generate Sheet</button>
+    <button id="print-btn" class="main-btn" style="display: none; background: var(--success);" onclick="downloadAndPrint()">Download & Print HD</button>
+</div>
+
+<canvas id="canvas" width="2480" height="3508"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"><\/script>
+
+<script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let cropper;
+    let isAdjusting = false;
+    let originalImageSrc = null; 
+    let lastCroppedImage = null;
+
+    let currentXPosition = 50; 
+    let currentYPosition = 50;
+    let totalItemsPrintedOnSheet = 0;
+    let isCanvasInitialized = false;
+    let isAppendActive = false; 
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const imagePreview = document.getElementById('image-preview');
+    const uploadInput = document.getElementById('upload');
+    const adjustBtn = document.getElementById('show-adjuster');
+    const editorSection = document.getElementById('editor-section');
+    const appendIndicator = document.getElementById('appendIndicator');
+
+    function toggleMode() {
+        const mode = document.getElementById('workMode').value;
+        const card = document.getElementById('mainCard');
+        const headerTitle = document.getElementById('headerTitle');
+        const passportSettings = document.getElementById('passportSettings');
+        const uploadLabel = document.getElementById('uploadLabel');
+
+        if (mode === 'aadhar') {
+            card.classList.add('aadhar-mode');
+            headerTitle.innerText = "KALAM AADHAR EDITOR";
+            passportSettings.style.display = 'none';
+            uploadLabel.innerText = "Step 1: Upload Aadhar Image/PDF";
+        } else {
+            card.classList.remove('aadhar-mode');
+            headerTitle.innerText = "KALAM PHOTO EDITOR";
+            passportSettings.style.display = 'block';
+            uploadLabel.innerText = "Step 1: Upload Photo";
+        }
+        
+        appendIndicator.style.display = 'none';
+        isAppendActive = false;
+        appendIndicator.classList.remove('active');
+        resetCanvasTracking();
+        resetEditor();
+    }
+
+    function resetEditor() {
+        if (cropper) { cropper.destroy(); cropper = null; }
+        isAdjusting = false;
+        editorSection.style.display = 'none';
+        adjustBtn.style.display = 'none';
+        adjustBtn.innerHTML = "<i class='fa fa-crop'></i> Adjust Photo";
+        originalImageSrc = null;
+        lastCroppedImage = null;
+        uploadInput.value = "";
+    }
+
+    function resetCanvasTracking() {
+        currentXPosition = 50;
+        currentYPosition = 50;
+        totalItemsPrintedOnSheet = 0;
+        isCanvasInitialized = false;
+    }
+
+    function toggleAppendState() {
+        if (!isCanvasInitialized) return; 
+        isAppendActive = !isAppendActive;
+        if (isAppendActive) {
+            appendIndicator.classList.add('active');
+        } else {
+            appendIndicator.classList.remove('active');
+        }
+    }
+
+    function updateCropRatio() {
+        if (cropper && document.getElementById('workMode').value === 'passport') {
+            const sizeData = document.getElementById("photo-size").value.split(',');
+            cropper.setAspectRatio(parseFloat(sizeData[0]) / parseFloat(sizeData[1]));
+        }
+    }
+
+    uploadInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (cropper) { cropper.destroy(); cropper = null; }
+        isAdjusting = false;
+        editorSection.style.display = 'none';
+        adjustBtn.style.display = 'none';
+        adjustBtn.innerHTML = "<i class='fa fa-crop'></i> Adjust Photo";
+        lastCroppedImage = null;
+
+        if (file.type === "application/pdf") {
+            const password = prompt("Enter PDF Password (if any):");
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument({ data: typedarray, password: password }).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 6.0 }); 
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.height = viewport.height;
+                    tempCanvas.width = viewport.width;
+
+                    await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
+                    
+                    if(document.getElementById('workMode').value === 'aadhar') {
+                        const cropW = tempCanvas.width;
+                        const cropH = tempCanvas.height * 0.32; 
+                        const cropY = tempCanvas.height - cropH - (tempCanvas.height * 0.04); 
+                        const finalCrop = document.createElement('canvas');
+                        finalCrop.width = cropW; finalCrop.height = cropH;
+                        finalCrop.getContext('2d').drawImage(tempCanvas, 0, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                        originalImageSrc = finalCrop.toDataURL('image/png', 1.0);
+                    } else {
+                        originalImageSrc = tempCanvas.toDataURL('image/png', 1.0);
+                    }
+                    imagePreview.src = originalImageSrc;
+                    adjustBtn.style.display = 'block';
+                } catch (err) { alert("PDF Error! Password galat ho sakta hai."); }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            originalImageSrc = URL.createObjectURL(file);
+            imagePreview.src = originalImageSrc;
+            adjustBtn.style.display = 'block';
+        }
+    });
+
+    function toggleAdjuster() {
+        const mode = document.getElementById('workMode').value;
+        if (!isAdjusting) {
+            isAdjusting = true;
+            editorSection.style.display = 'block';
+            imagePreview.style.display = 'block';
+            
+            if (originalImageSrc) {
+                imagePreview.src = originalImageSrc;
+            }
+            
+            let ratio = mode === 'aadhar' ? 17.5 / 5.5 : parseFloat(document.getElementById("photo-size").value.split(',')[0]) / parseFloat(document.getElementById("photo-size").value.split(',')[1]);
+
+            cropper = new Cropper(imagePreview, { 
+                aspectRatio: ratio, 
+                viewMode: 1,
+                autoCropArea: 1
+            });
+            adjustBtn.innerHTML = "<i class='fa fa-check'></i> Apply Crop";
+        } else {
+            if (cropper) { 
+                lastCroppedImage = cropper.getCroppedCanvas({ 
+                    width: 3600, 
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high' 
+                }); 
+                imagePreview.src = lastCroppedImage.toDataURL('image/png', 1.0);
+                cropper.destroy(); cropper = null; 
+            }
+            isAdjusting = false;
+            editorSection.style.display = 'none';
+            adjustBtn.innerHTML = "<i class='fa fa-crop'></i> Adjust Photo";
+        }
+    }
+
+    function zoom(v) { if(cropper) cropper.zoom(v); }
+    function rotate(d) { if(cropper) cropper.rotate(d); }
+
+    function generateSheet() {
+        if (!imagePreview.src) { alert("Pehle photo upload karein!"); return; }
+        
+        const mode = document.getElementById('workMode').value;
+        const sizeValue = document.getElementById("photo-size").value;
+        const PPI = 300;
+        const CM_TO_PX = PPI / 2.54;
+        
+        let targetW, targetH, cols, qty, gap;
+        let isA4FullSize = (sizeValue === "2480,3508" && mode !== 'aadhar');
+
+        if (mode === 'aadhar') {
+            targetW = 17.5 * CM_TO_PX; 
+            targetH = 5.5 * CM_TO_PX;
+            cols = 1; qty = 1; gap = 40;
+        } else {
+            const sizeData = sizeValue.split(',');
+            targetW = parseInt(sizeData[0]);
+            targetH = parseInt(sizeData[1]);
+            cols = parseInt(document.getElementById("cols").value);
+            qty = isA4FullSize ? 1 : parseInt(document.getElementById("qty").value);
+            gap = isA4FullSize ? 0 : parseInt(document.getElementById("gap").value);
+        }
+
+        let leftMarginStartX = isA4FullSize ? 0 : 50; 
+
+        if (!isAppendActive || !isCanvasInitialized) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            currentXPosition = leftMarginStartX;
+            currentYPosition = isA4FullSize ? 0 : 50;
+            totalItemsPrintedOnSheet = 0;
+            isCanvasInitialized = true;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            for (let i = 0; i < qty; i++) {
+                if (currentXPosition + targetW > canvas.width - 20 && mode !== 'aadhar' && !isA4FullSize) {
+                    currentXPosition = leftMarginStartX;
+                    currentYPosition += targetH + gap;
+                }
+
+                ctx.save();
+                ctx.filter = "brightness(1.04) contrast(1.08) saturate(1.15)";
+                ctx.drawImage(img, currentXPosition, currentYPosition, targetW, targetH);
+                ctx.restore();
+                
+                ctx.save();
+                ctx.strokeStyle = "#000000"; 
+                ctx.lineWidth = isA4FullSize ? 1 : 2;
+                ctx.strokeRect(currentXPosition, currentYPosition, targetW, targetH);
+                ctx.restore();
+
+                if (mode === 'aadhar') {
+                    currentYPosition += targetH + gap;
+                } else if (isA4FullSize) {
+                    currentXPosition += targetW;
+                } else {
+                    currentXPosition += targetW + gap;
+                    totalItemsPrintedOnSheet++;
+                    
+                    if (totalItemsPrintedOnSheet % cols === 0 && i < qty - 1) { 
+                        currentXPosition = leftMarginStartX; 
+                        currentYPosition += targetH + gap; 
+                    }
+                }
+            }
+
+            canvas.style.display = 'block';
+            document.getElementById('print-btn').style.display = 'block';
+            canvas.scrollIntoView({ behavior: 'smooth' });
+
+            appendIndicator.style.display = 'flex';
+        };
+        img.src = lastCroppedImage ? lastCroppedImage.toDataURL('image/png', 1.0) : imagePreview.src;
+    }
+
+    function downloadAndPrint() {
+        const link = document.createElement('a');
+        link.download = 'Kalam_HD_Print.png';
+        link.href = canvas.toDataURL("image/png", 1.0); 
+        link.click();
+        setTimeout(() => { window.print(); }, 500);
+    }
+<\/script>
+</body>
+</html>`;
+
+        const blob = new Blob([editorCode], { type: 'text/html' });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, '_blank');
+    }
+
+    function openResumeMaker() {
+        document.getElementById('dashboard-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('resume-maker-content').style.display = 'block';
+        
+        // Initializer
+        if(document.getElementById('wrapperQualification').children.length === 0) {
+            appendQualificationBox();
+            appendOtherBox();
+            appendExperienceBox();
+            togglePhotoOption();
+        }
+    }
+
+    /* ==========================================
+       CASH COUNTER LOGIC CODES
+       ========================================== */
+    function toggleCashCounter() {
+        const modal = document.getElementById('cash-counter-modal');
+        if(modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } else {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    function calculateTotalCash() {
+        const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 1];
+        let grandTotal = 0;
+
+        denominations.forEach(val => {
+            const inputField = document.getElementById('note' + val);
+            const count = parseInt(inputField.value) || 0;
+            const rowTotal = count * val;
+            grandTotal += rowTotal;
+            document.getElementById('res' + val).innerText = '₹' + rowTotal;
+        });
+
+        document.getElementById('grandTotalCash').innerText = '₹ ' + grandTotal.toLocaleString('en-IN');
+    }
+
+    function resetCashCounter() {
+        const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 1];
+        denominations.forEach(val => {
+            document.getElementById('note' + val).value = '';
+            document.getElementById('res' + val).innerText = '₹0';
+        });
+        document.getElementById('grandTotalCash').innerText = '₹ 0';
+    }
+
+    let IMMUTABLE_AVATAR_STREAM_CACHE = null;
+
+    function setPhotoOption(option) {
+        document.getElementById('inputPhotoOption').value = option;
+        const btnWith = document.getElementById('btnWithPhoto');
+        const btnWithout = document.getElementById('btnWithoutPhoto');
+        
+        if (option === 'withPhoto') {
+            btnWith.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
+            btnWithout.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+        } else {
+            btnWithout.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
+            btnWith.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+        }
+        togglePhotoOption();
+    }
+
+    function togglePhotoOption() {
+        const photoOption = document.getElementById('inputPhotoOption').value;
+        const photoUploadWrapper = document.getElementById('photoUploadWrapper');
+        const outPhotoContainer = document.getElementById('outPhotoContainer');
+
+        if (photoOption === 'withoutPhoto') {
+            photoUploadWrapper.classList.add('hidden');
+            outPhotoContainer.classList.add('hidden');
+        } else {
+            photoUploadWrapper.classList.remove('hidden');
+            outPhotoContainer.classList.remove('hidden');
+        }
+        updateLivePreview();
+    }
+
+    function processImageStream(event) {
+        const uploadedFile = event.target.files[0];
+        if (uploadedFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                IMMUTABLE_AVATAR_STREAM_CACHE = e.target.result;
+                document.getElementById('previewAvatar').src = IMMUTABLE_AVATAR_STREAM_CACHE;
+                document.getElementById('previewAvatar').classList.remove('hidden');
+                document.getElementById('fallbackIcon').classList.add('hidden');
+                
+                document.getElementById('outPhoto').src = IMMUTABLE_AVATAR_STREAM_CACHE;
+                document.getElementById('outPhoto').classList.remove('hidden');
+                document.getElementById('outPhotoFallback').classList.add('hidden');
+                updateLivePreview();
+            }
+            reader.readAsDataURL(uploadedFile);
+        }
+    }
+
+    function applyObjectiveSnippet() {
+        const selectedVal = document.getElementById('selectObjective').value;
+        if(selectedVal) {
+            document.getElementById('textObjective').value = selectedVal;
+            updateLivePreview();
+        }
+    }
+
+    function appendQualificationBox() {
+        const host = document.getElementById('wrapperQualification');
+        const targetDiv = document.createElement('div');
+        targetDiv.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-200/60 shadow-xs";
+        targetDiv.innerHTML = `
+            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. 10th / 12th / B.A" class="sleek-entry-field" data-q="degree" oninput="updateLivePreview()"></div>
+            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. UP Board / CBSE" class="sleek-entry-field" data-q="board" oninput="updateLivePreview()"></div>
+            <div class="col-span-5 md:col-span-2"><input type="text" placeholder="Year" class="sleek-entry-field text-center" data-q="year" oninput="updateLivePreview()"></div>
+            <div class="col-span-5 md:col-span-1"><input type="text" placeholder="%" class="sleek-entry-field text-center" data-q="percent" oninput="updateLivePreview()"></div>
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="col-span-2 md:col-span-1 text-red-500 hover:text-red-700 font-bold text-base text-center cursor-pointer p-1">✕</button>
+        `;
+        host.appendChild(targetDiv);
+        updateLivePreview();
+    }
+
+    function appendOtherBox() {
+        const host = document.getElementById('wrapperOther');
+        const targetDiv = document.createElement('div');
+        targetDiv.className = "flex gap-2 items-center";
+        targetDiv.innerHTML = `
+            <input type="text" placeholder="e.g. Basic Computer Knowledge" class="w-full sleek-entry-field" data-o="val" oninput="updateLivePreview()">
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
+        `;
+        host.appendChild(targetDiv);
+        updateLivePreview();
+    }
+
+    function appendExperienceBox() {
+        const host = document.getElementById('wrapperExperience');
+        const targetDiv = document.createElement('div');
+        targetDiv.className = "flex gap-2 items-center";
+        targetDiv.innerHTML = `
+            <input type="text" placeholder="e.g. 2 Years Experience" class="w-full sleek-entry-field" data-e="val" oninput="updateLivePreview()">
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
+        `;
+        host.appendChild(targetDiv);
+        updateLivePreview();
+    }
+
+    function updateLivePreview() {
+        document.getElementById('outHeading').innerText = document.getElementById('inputHeading').value;
+        const nm = document.getElementById('inputName').value;
+        document.getElementById('outName').innerText = nm;
+        
+        if(nm.trim() !== "") {
+            document.getElementById('outSignatureName').innerText = `(${nm})`;
+            document.getElementById('sectionDeclaration').classList.remove('hidden');
+            document.getElementById('sectionFooter').classList.remove('hidden');
+        } else {
+            document.getElementById('outSignatureName').innerText = "";
+            document.getElementById('sectionDeclaration').classList.add('hidden');
+            document.getElementById('sectionFooter').classList.add('hidden');
+        }
+
+        const hNo = document.getElementById('inputHouse').value;
+        const lMark = document.getElementById('inputLandmark').value;
+        const areaLoc = document.getElementById('inputArea').value;
+        const citySt = document.getElementById('inputCity').value;
+        const pinCd = document.getElementById('inputPincode').value;
+
+        let compiledAddress = "";
+        if(hNo) compiledAddress += hNo;
+        if(lMark) compiledAddress += (compiledAddress ? ", " : "") + lMark;
+        if(areaLoc) compiledAddress += (compiledAddress ? "<br>" : "") + areaLoc;
+        if(citySt) {
+            compiledAddress += (compiledAddress ? ", " : "") + citySt;
+            document.getElementById('outPlaceStamp').innerText = citySt;
+        } else {
+            document.getElementById('outPlaceStamp').innerText = "";
+        }
+        if(pinCd) compiledAddress += (citySt ? " - " : " ") + pinCd;
+        document.getElementById('outAddressLine').innerHTML = compiledAddress;
+
+        const phoneVal = document.getElementById('inputPhone').value;
+        document.getElementById('outPhone').innerText = phoneVal ? "Mob No. : " + phoneVal : "";
+        
+        const emailVal = document.getElementById('inputEmail').value;
+        document.getElementById('outEmail').innerText = emailVal ? "Email Id : " + emailVal : "";
+
+        const objVal = document.getElementById('textObjective').value;
+        if(objVal.trim() !== "") {
+            document.getElementById('sectionObjective').classList.remove('hidden');
+            document.getElementById('outObjective').innerText = objVal;
+        } else {
+            document.getElementById('sectionObjective').classList.add('hidden');
+        }
+
+        const fName = document.getElementById('inputFather').value;
+        const dobVal = document.getElementById('inputDob').value;
+        const lngVal = document.getElementById('inputLang').value;
+        const genVal = document.getElementById('inputGender').value;
+        const natVal = document.getElementById('inputNationality').value;
+        const marVal = document.getElementById('inputMarital').value;
+
+        if(fName || dobVal || lngVal || genVal || natVal || marVal) {
+            document.getElementById('sectionPersonalInfo').classList.remove('hidden');
+            if(fName) {
+                document.getElementById('rowFather').classList.remove('hidden');
+                document.getElementById('outFatherName').innerText = fName;
+            } else { document.getElementById('rowFather').classList.add('hidden'); }
+
+            if(dobVal) {
+                document.getElementById('rowDob').classList.remove('hidden');
+                const arrayParts = dobVal.split('-');
+                document.getElementById('outDob').innerText = `${arrayParts[2]}/${arrayParts[1]}/${arrayParts[0]}`;
+            } else { document.getElementById('rowDob').classList.add('hidden'); }
+
+            document.getElementById('outLanguage').innerText = lngVal;
+            document.getElementById('outGender').innerText = genVal;
+            document.getElementById('outNationality').innerText = natVal;
+            document.getElementById('outMarital').innerText = marVal;
+        } else {
+            document.getElementById('sectionPersonalInfo').classList.add('hidden');
+        }
+
+        // New Logic for Resume Date
+        if(nm.trim() !== "") {
+            const resumeDateInput = document.getElementById('inputResumeDate').value;
+            if(resumeDateInput) {
+                const parts = resumeDateInput.split('-');
+                document.getElementById('outDateStamp').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } else {
+                const todayObj = new Date();
+                const dd = String(todayObj.getDate()).padStart(2, '0');
+                const mm = String(todayObj.getMonth() + 1).padStart(2, '0');
+                document.getElementById('outDateStamp').innerText = `${dd}/${mm}/${todayObj.getFullYear()}`;
+            }
+        }
+
+        // Academic Tables Rows Processing
+        const tableBody = document.getElementById('outQualTable');
+        tableBody.innerHTML = '';
+        const qualificationRows = document.getElementById('wrapperQualification').children;
+        let totalQ = 0;
+        Array.from(qualificationRows).forEach((row) => {
+            const degree = row.querySelector('[data-q="degree"]').value;
+            const board = row.querySelector('[data-q="board"]').value;
+            const year = row.querySelector('[data-q="year"]').value;
+            const percent = row.querySelector('[data-q="percent"]').value;
+
+            if(degree || board) {
+                totalQ++;
+                const trNode = document.createElement('tr');
+                trNode.innerHTML = `
+                    <td class="text-center font-black" style="color:#000000 !important;">${totalQ}</td>
+                    <td class="uppercase font-black" style="color:#000000 !important;">${degree}</td>
+                    <td class="uppercase font-bold" style="color:#000000 !important;">${board}</td>
+                    <td class="text-center font-bold" style="color:#000000 !important;">${year}</td>
+                    <td class="text-center font-black" style="color:#000000 !important;">${percent}</td>
+                `;
+                tableBody.appendChild(trNode);
+            }
+        });
+        if(totalQ > 0) { document.getElementById('sectionQualification').classList.remove('hidden'); }
+        else { document.getElementById('sectionQualification').classList.add('hidden'); }
+
+        // Skills Processing
+        const otherUlList = document.getElementById('outOtherQual');
+        otherUlList.innerHTML = '';
+        const otherInputs = document.querySelectorAll('[data-o="val"]');
+        let totalO = 0;
+        otherInputs.forEach(input => {
+            if(input.value.trim() !== "") {
+                totalO++;
+                const liNode = document.createElement('li');
+                liNode.innerText = input.value;
+                otherUlList.appendChild(liNode);
+            }
+        });
+        if(totalO > 0) { document.getElementById('sectionOtherQual').classList.remove('hidden'); }
+        else { document.getElementById('sectionOtherQual').classList.add('hidden'); }
+
+        // Experience Processing
+        const expUlList = document.getElementById('outExperience');
+        expUlList.innerHTML = '';
+        const expInputs = document.querySelectorAll('[data-e="val"]');
+        let totalE = 0;
+        expInputs.forEach(input => {
+            if(input.value.trim() !== "") {
+                totalE++;
+                const liNode = document.createElement('li');
+                liNode.innerText = input.value;
+                expUlList.appendChild(liNode);
+            }
+        });
+        if(totalE > 0) { document.getElementById('sectionExperience').classList.remove('hidden'); }
+        else { document.getElementById('sectionExperience').classList.add('hidden'); }
+    }
+
+    // SYSTEM HIGH-DEFINITION PRINT CORRECTIONS
+    function generateHDPrint() {
+        updateLivePreview();
+        const oldZone = document.getElementById('print-engine-secure-zone');
+        if(oldZone) oldZone.remove();
+        
+        const printZone = document.createElement('div');
+        printZone.id = 'print-engine-secure-zone';
+        printZone.innerHTML = document.getElementById('mainPrintSheetCanvas').innerHTML;
+        document.body.appendChild(printZone);
+        
+        window.print();
+        setTimeout(() => { if(printZone) printZone.remove(); }, 500);
+    }
+
+    // EXPORT TO PDF - FIXED BUG (Blank PDF issue resolved by cloning & isolating layout)
+    function exportPDF() {
+        updateLivePreview(); 
+        const fileIdentity = document.getElementById('inputName').value || "Document";
+
+        // Fix: Clone the canvas to prevent scroll-offset blank PDF issues & reduce scale to prevent memory limit
+        const sourceNode = document.getElementById('mainPrintSheetCanvas');
+        const clonedNode = sourceNode.cloneNode(true);
+        
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = '210mm';
+        tempContainer.style.zIndex = '-9999'; // Hides it behind other elements
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.appendChild(clonedNode);
+        
+        document.body.appendChild(tempContainer);
+
+        const optionsConfig = {
+            margin:       0, 
+            filename:     `${fileIdentity.trim().replace(/\s+/g, '_')}_Resume.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(optionsConfig).from(clonedNode).save().then(() => {
+            // Clean up the temporary clone after download is triggered
+            document.body.removeChild(tempContainer);
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KALAM DIGITAL SEVA - Premium Image & PDF Tools</title>
+    
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiS0FMQU0gRElHSVRBTCBTRVZBIiwic2hvcnRfbmFtZSI6IktEUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjZmNmY5IiwidGhlbWVfY29sb3IiOiIjZTUzMjJkIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBQUVBQUFBQkNBWUFBQUFmRmNTSkFBQUFEVWxFUVZSNDJtUDh6OEIUUURBQUJRR0FoS21NSVFBQUFBQkpSVTVFcmtKZ2dnPT0iLCJzaXplcyI6IjF4MSIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        kalamRed: '#e5322d',
+                        kalamRedHover: '#cc2b27',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.3/dist/heic2any.min.js"></script>
+
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; }
+        .drag-active { background-color: #fef2f2 !important; border: 2px dashed #e5322d !important; }
+        .dark .drag-active { background-color: rgba(229, 50, 45, 0.1) !important; }
+        .hide { display: none !important; }
+        .image-card { cursor: grab; }
+        .image-card:active { cursor: grabbing; }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #e5322d; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .dark .loader { border-color: #374151; border-top-color: #e5322d; }
+        @keyframes spin { 0 { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .btn-red { background-color: #e5322d; transition: all 0.2s; }
+        .btn-red:hover { background-color: #cc2b27; transform: translateY(-1px); }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+
+        canvas#signatureCanvas { border: 2px dashed #cbd5e1; border-radius: 0.5rem; cursor: crosshair; }
+        .dark canvas#signatureCanvas { border-color: #4b5563; background-color: #1f2937; }
+    </style>
+</head>
+<body class="bg-[#f6f6f9] dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased pb-20 md:pb-0 min-h-screen flex flex-col">
+
+    <nav class="bg-white dark:bg-gray-800 shadow-sm p-4 sticky top-0 z-40 transition-colors">
+        <div class="max-w-7xl mx-auto flex justify-between items-center relative">
+            <div class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white cursor-pointer flex items-center" onclick="goHome()">
+                <i class="fa-solid fa-file-pdf text-[#e5322d] mr-2"></i>
+                <span class="hidden sm:inline">KALAM DIGITAL SEVA</span>
+                <span class="sm:hidden">KDS TOOLS</span>
+            </div>
+            <div class="flex items-center space-x-3 md:space-x-6 font-medium text-gray-600 dark:text-gray-300">
+                <a href="#" onclick="goHome()" class="hidden md:block hover:text-[#e5322d] dark:hover:text-[#e5322d] transition">Home</a>
+                <a href="#jpgToPdfEditor" class="hidden md:block hover:text-[#e5322d] dark:hover:text-[#e5322d] transition" onclick="document.getElementById('fileInput').click()">IMG to PDF</a>
+                <a href="#pdfToJpgEditor" class="hidden md:block hover:text-[#e5322d] dark:hover:text-[#e5322d] transition" onclick="document.getElementById('pdfInput').click()">PDF to JPG</a>
+                <a href="#" onclick="showHistorySection()" class="hidden md:block hover:text-[#e5322d] dark:hover:text-[#e5322d] transition"><i class="fa-solid fa-clock-rotate-left mr-1"></i>History</a>
+                
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Toggle Dark Mode">
+                    <i id="themeIcon" class="fa-solid fa-moon text-xl text-gray-600 dark:text-yellow-400"></i>
+                </button>
+
+                <button onclick="toggleDropdownMenu()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Menu">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <div id="hamburgerDropdown" class="hide absolute right-0 top-14 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50">
+                <a href="#" onclick="goHome(); toggleDropdownMenu();" class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-semibold transition">
+                    <i class="fa-solid fa-house w-6 text-gray-400"></i> Home Dashboard
+                </a>
+                <a href="#" onclick="toggleDropdownMenu(); document.getElementById('fileInput').click();" class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-semibold transition">
+                    <i class="fa-regular fa-image w-6 text-[#e5322d]"></i> Image to PDF Convert
+                </a>
+                <a href="#" onclick="toggleDropdownMenu(); document.getElementById('pdfInput').click();" class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-semibold transition">
+                    <i class="fa-regular fa-file-pdf w-6 text-blue-500"></i> PDF to JPG Extract
+                </a>
+                <a href="#" onclick="toggleDropdownMenu(); showHistorySection();" class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-semibold transition">
+                    <i class="fa-solid fa-clock-rotate-left w-6 text-emerald-500"></i> Local Activity History
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto p-4 lg:p-8 w-full">
+        
+        <div id="homeSection" class="flex flex-col items-center justify-center mt-2 md:mt-6 w-full">
+            <div id="dropZoneJpg" class="text-center w-full max-w-4xl p-8 md:p-12 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition duration-300 mb-10 relative">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 dark:text-white mb-4">JPG to PDF</h1>
+                <p class="text-base md:text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">Convert ANY image (JPG, PNG, WEBP, GIF, etc.) to PDF in seconds. Easily adjust orientation, sizing, and margins.</p>
+                <div class="flex flex-col items-center">
+                    <div class="flex flex-wrap justify-center items-center gap-3">
+                        <button class="btn-red text-white text-lg md:text-2xl font-bold py-4 px-8 md:px-12 rounded-xl shadow-lg" onclick="document.getElementById('fileInput').click()">
+                            Select Images
+                        </button>
+                        <button onclick="alert('Google Drive API configuration required for cloud integration.')" class="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 p-4 rounded-xl shadow-sm hover:scale-105 transition" title="Import from Drive"><i class="fa-brands fa-google-drive text-2xl"></i></button>
+                        <button onclick="alert('Dropbox API configuration required for cloud integration.')" class="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 p-4 rounded-xl shadow-sm hover:scale-105 transition" title="Import from Dropbox"><i class="fa-brands fa-dropbox text-2xl"></i></button>
+                    </div>
+                    <p class="mt-5 text-gray-400 dark:text-gray-500 font-medium">or drop images here</p>
+                </div>
+                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+            </div>
+
+            <div id="dropZonePdf" class="text-center w-full max-w-4xl p-8 md:p-12 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition duration-300 relative">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 dark:text-white mb-4">PDF to JPG</h1>
+                <p class="text-base md:text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">Convert any PDF into HD JPGs. Fully supports password-protected documents (Aadhaar, Bank Statements).</p>
+                <div class="flex flex-col items-center">
+                    <div class="flex flex-wrap justify-center items-center gap-3">
+                        <button class="btn-red text-white text-lg md:text-2xl font-bold py-4 px-8 md:px-12 rounded-xl shadow-lg" onclick="document.getElementById('pdfInput').click()">
+                            Select PDF files
+                        </button>
+                        <button onclick="alert('Google Drive API configuration required for cloud integration.')" class="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 p-4 rounded-xl shadow-sm hover:scale-105 transition" title="Import from Drive"><i class="fa-brands fa-google-drive text-2xl"></i></button>
+                    </div>
+                    <p class="mt-5 text-gray-400 dark:text-gray-500 font-medium">or drop PDFs here</p>
+                </div>
+                <input type="file" id="pdfInput" accept="application/pdf" class="hidden">
+            </div>
+            
+            <div class="w-full max-w-6xl mt-20 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">More Professional Tools</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div onclick="showToolSection('mergeEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-object-group text-2xl text-purple-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Merge PDF</h3></div>
+                    <div onclick="showToolSection('splitEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-scissors text-2xl text-blue-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Split PDF</h3></div>
+                    <div onclick="showToolSection('lockEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-lock text-2xl text-red-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Lock PDF</h3></div>
+                    <div onclick="showToolSection('unlockEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-lock-open text-2xl text-green-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Unlock PDF</h3></div>
+                    <div onclick="showToolSection('esignEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-signature text-2xl text-yellow-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">eSign PDF</h3></div>
+                    <div onclick="showToolSection('qrEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group"><i class="fa-solid fa-qrcode text-2xl text-indigo-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">QR Gen</h3></div>
+                    
+                    <div onclick="showToolSection('compressPdfEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
+                        <i class="fa-solid fa-compress text-2xl text-orange-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Compress PDF</h3>
+                    </div>
+                    <div onclick="showToolSection('imageCompressEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
+                        <i class="fa-regular fa-image text-2xl text-emerald-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Compress Image</h3>
+                    </div>
+                    <div onclick="showToolSection('ocrEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
+                        <i class="fa-solid fa-file-lines text-2xl text-cyan-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Image to Text</h3>
+                    </div>
+                    <div onclick="showToolSection('watermarkEditor')" class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center hover:border-kalamRed transition cursor-pointer group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
+                        <i class="fa-solid fa-copyright text-2xl text-pink-500 mb-2 group-hover:scale-110 transition"></i><h3 class="font-bold text-sm dark:text-gray-200">Add Watermark</h3>
+                    </div>
+                    </div>
+            </div>
+        </div>
+
+        <div id="mergeEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Merge Multiple PDFs</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Select multiple PDF files to combine them into a single document.</p>
+            <input type="file" id="mergeInput" multiple accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-4" onclick="document.getElementById('mergeInput').click()">Select PDFs to Merge</button>
+            <div id="mergeList" class="text-left space-y-2 mb-6 max-h-60 overflow-y-auto"></div>
+            <button id="executeMergeBtn" class="hide w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Combine & Download</button>
+        </div>
+
+        <div id="splitEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Split PDF / Extract Pages</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Select a PDF and choose which pages to keep (e.g., 1, 3, 4-6).</p>
+            <input type="file" id="splitInput" accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('splitInput').click()">Select PDF</button>
+            <div id="splitControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="splitFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <input type="text" id="splitRange" placeholder="e.g. 1, 3, 5-8" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-4 text-center">
+                <button id="executeSplitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Extract & Download</button>
+            </div>
+        </div>
+
+        <div id="lockEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-2">Secure & Lock PDF</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Add unbreakable password protection. <br><span class="text-xs text-red-500 font-bold">Note: This will flatten your PDF to ensure max security against extraction.</span></p>
+            <input type="file" id="lockInput" accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('lockInput').click()">Select Document to Lock</button>
+            <div id="lockControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="lockFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <input type="password" id="lockPassword" placeholder="Enter New Password" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-4 text-center font-bold tracking-widest">
+                <button id="executeLockBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-lock mr-2"></i> Encrypt & Download</button>
+            </div>
+        </div>
+
+        <div id="unlockEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Unlock PDF</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Remove password protection from a PDF permanently. You must know the current password.</p>
+            <input type="file" id="unlockInput" accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('unlockInput').click()">Select Locked Document</button>
+            <div id="unlockControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="unlockFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <input type="password" id="unlockPassword" placeholder="Enter Current Password" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-4 text-center font-bold tracking-widest">
+                <button id="executeUnlockBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-lock-open mr-2"></i> Decrypt & Download</button>
+            </div>
+        </div>
+
+        <div id="esignEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">eSign Document</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Draw your signature and append it to the document.</p>
+            <input type="file" id="esignInput" accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('esignInput').click()">Select PDF</button>
+            <div id="esignControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="esignFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <div class="w-full bg-white dark:bg-gray-900 rounded-xl mb-4 relative">
+                    <canvas id="signatureCanvas" width="400" height="200" class="w-full bg-white dark:bg-gray-800 rounded-xl"></canvas>
+                    <button onclick="clearSignature()" class="absolute top-2 right-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded">Clear</button>
+                </div>
+                <button id="executeEsignBtn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-signature mr-2"></i> Sign & Download</button>
+            </div>
+        </div>
+
+        <div id="qrEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">QR Code Generator</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Generate high quality QR Codes for text, links, or contacts.</p>
+            <div class="flex flex-col items-center w-full max-w-md mx-auto">
+                <textarea id="qrText" rows="3" placeholder="Enter URL or Text here..." class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-6"></textarea>
+                <button onclick="generateQR()" class="btn-red text-white font-bold py-3 px-8 rounded-xl shadow-lg w-full mb-6">Generate QR Code</button>
+                <div id="qrResultContainer" class="hide flex flex-col items-center bg-gray-50 dark:bg-gray-700 p-6 rounded-2xl border border-gray-200 dark:border-gray-600 w-full">
+                    <canvas id="qrCanvas" class="mb-4 rounded-lg bg-white p-2 shadow-sm"></canvas>
+                    <button onclick="downloadQR()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition text-sm w-full"><i class="fa-solid fa-download mr-1"></i> Save as Image</button>
+                </div>
+            </div>
+        </div>
+        <div id="compressPdfEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Compress PDF Size</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Reduce PDF file size smoothly while maintaining readability.</p>
+            <input type="file" id="compressPdfInput" accept="application/pdf" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('compressPdfInput').click()">Select PDF File</button>
+            <div id="compressPdfControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="compressPdfFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 w-full text-left">Compression Level:</label>
+                <select id="pdfCompressLevel" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-6">
+                    <option value="0.6|1.5">Standard (Good Balance)</option>
+                    <option value="0.3|1.0">Extreme Compression (Smallest Size)</option>
+                    <option value="0.45|1.2">High Compression</option>
+                    <option value="0.85|2.0">Low Compression (Better Quality)</option>
+                </select>
+                <button id="executeCompressPdfBtn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-compress mr-2"></i> Compress & Download</button>
+            </div>
+        </div>
+
+        <div id="imageCompressEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Image Compressor (Exact Size)</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Compress images to exactly the KB size you want and auto-convert iPhone HEIC files.</p>
+            <input type="file" id="imageCompressInput" accept="image/*,.heic" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('imageCompressInput').click()">Select Image</button>
+            <div id="imageCompressControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="imageCompressFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 truncate w-full"></p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 w-full text-left">Target Exact Size (in KB):</label>
+                <input type="number" id="targetKbInput" value="50" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-6 text-center">
+                <button id="executeImageCompressBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-down-left-and-up-right-to-center mr-2"></i> Compress Image</button>
+            </div>
+        </div>
+
+        <div id="ocrEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Extract Text from Image</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Uses AI Web Workers to read text from your photos and documents locally.</p>
+            <input type="file" id="ocrInput" accept="image/*" class="hidden">
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('ocrInput').click()">Select Image with Text</button>
+            <div id="ocrControls" class="hide flex flex-col items-center w-full max-w-2xl mx-auto">
+                <div class="flex gap-4 w-full mb-4">
+                    <img id="ocrPreview" class="w-1/3 object-contain bg-gray-100 dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-32">
+                    <div class="w-2/3 flex flex-col justify-center">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-left">Language:</label>
+                        <select id="ocrLanguage" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed">
+                            <option value="eng">English</option>
+                            <option value="hin">Hindi</option>
+                            <option value="eng+hin">English + Hindi</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="executeOcrBtn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl shadow-lg transition mb-6"><i class="fa-solid fa-microchip mr-2"></i> Extract Text</button>
+                <textarea id="ocrOutput" rows="6" placeholder="Extracted text will appear here..." class="w-full border dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed mb-2"></textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('ocrOutput').value); alert('Copied!')" class="text-sm font-bold text-gray-500 hover:text-kalamRed transition"><i class="fa-regular fa-copy mr-1"></i>Copy Text</button>
+            </div>
+        </div>
+
+        <div id="watermarkEditor" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-4">Add Watermark or Logo</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">Stamp a custom logo or diagonal text across all pages of your PDF.</p>
+            <input type="file" id="watermarkPdfInput" accept="application/pdf" class="hidden">
+            <input type="file" id="watermarkLogoInput" accept="image/png, image/jpeg" class="hidden">
+            
+            <button class="btn-red text-white text-lg font-bold py-3 px-8 rounded-xl shadow-lg mb-6" onclick="document.getElementById('watermarkPdfInput').click()">Select Target PDF</button>
+            
+            <div id="watermarkControls" class="hide flex flex-col items-center w-full max-w-md mx-auto">
+                <p id="watermarkFileName" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-6 truncate w-full"></p>
+                
+                <div class="w-full bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-left">Text Watermark:</label>
+                    <input type="text" id="watermarkTextInput" placeholder="e.g. CONFIDENTIAL" class="w-full border dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-800 dark:text-white outline-none focus:border-kalamRed mb-4 text-center font-bold tracking-widest">
+                    
+                    <p class="text-xs text-gray-500 font-bold mb-2">OR</p>
+                    
+                    <button onclick="document.getElementById('watermarkLogoInput').click()" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg text-sm w-full transition"><i class="fa-solid fa-image mr-1"></i> Upload Logo Stamp (PNG/JPG)</button>
+                    <p id="watermarkLogoName" class="text-xs text-green-600 dark:text-green-400 mt-2 font-bold hide">Logo Selected ✓</p>
+                </div>
+                
+                <button id="executeWatermarkBtn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl shadow-lg transition"><i class="fa-solid fa-stamp mr-2"></i> Apply Stamp & Download</button>
+            </div>
+        </div>
+        <div id="jpgToPdfEditor" class="hide flex flex-col lg:flex-row gap-6">
+            <div class="w-full lg:w-1/4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm h-fit border border-gray-200 dark:border-gray-700">
+                <h3 class="font-bold text-lg mb-4 border-b dark:border-gray-700 pb-2 dark:text-white">PDF Settings</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Page Size</label>
+                    <select id="pageSize" class="w-full border dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-[#e5322d]">
+                        <option value="a4">A4 (210mm x 297mm)</option>
+                        <option value="letter">Letter (8.5in x 11in)</option>
+                        <option value="fit">Fit (Same as image dimension)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Orientation</label>
+                    <select id="orientation" class="w-full border dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-[#e5322d]">
+                        <option value="p">Portrait</option>
+                        <option value="l">Landscape</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Margin</label>
+                    <select id="margin" class="w-full border dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-[#e5322d]">
+                        <option value="0">No Margin</option>
+                        <option value="10">Small Margin</option>
+                        <option value="20">Large Margin</option>
+                    </select>
+                </div>
+                <button id="convertPdfBtn" class="w-full btn-red text-white font-bold py-3.5 rounded-xl shadow-lg flex justify-center items-center gap-2 text-lg">
+                    <span>Convert to PDF</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button class="w-full mt-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-3 rounded-xl transition" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-plus mr-1"></i> Add More Files
+                </button>
+            </div>
+
+            <div class="w-full lg:w-3/4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 min-h-[500px]">
+                <div class="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-2">
+                    <h3 class="font-bold text-lg dark:text-white">Arrange Images</h3>
+                    <span class="text-sm font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full"><span id="imageCount">0</span> Images</span>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><i class="fa-solid fa-arrows-up-down-left-right"></i> Drag and drop cards to reorder matching your document sequencing.</p>
+                <div id="imageGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            </div>
+        </div>
+
+        <div id="pdfToJpgEditor" class="hide flex flex-col gap-6">
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="font-bold text-xl dark:text-white">Extracted HD Pages</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Download individual pages natively or pack everything in an ultra compressed ZIP file.</p>
+                </div>
+                <button id="downloadZipBtn" class="btn-red text-white font-bold py-3 px-8 rounded-xl shadow-lg flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-file-zipper"></i> Download All (ZIP)
+                </button>
+            </div>
+            <div id="pdfPagesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+        </div>
+
+        <div id="historySection" class="hide max-w-4xl mx-auto w-full bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold dark:text-white">Your Local History Logs</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Files are securely stored in your browser so you can redownload them anytime.</p>
+                </div>
+                <button onclick="clearAllHistory()" class="bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear History
+                </button>
+            </div>
+            <div id="historyListContainer" class="space-y-3">
+                </div>
+        </div>
+    </main>
+
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around items-center py-2 z-40 pb-safe">
+        <button onclick="goHome()" class="flex flex-col items-center w-1/4 py-1 text-gray-500 dark:text-gray-400 hover:text-kalamRed dark:hover:text-kalamRed transition">
+            <i class="fa-solid fa-house text-lg mb-1"></i><span class="text-[10px] font-bold">Home</span>
+        </button>
+        <button onclick="goHome(); document.getElementById('fileInput').click()" class="flex flex-col items-center w-1/4 py-1 text-gray-500 dark:text-gray-400 hover:text-kalamRed dark:hover:text-kalamRed transition">
+            <i class="fa-regular fa-image text-lg mb-1"></i><span class="text-[10px] font-bold">IMG to PDF</span>
+        </button>
+        <button onclick="goHome(); document.getElementById('pdfInput').click()" class="flex flex-col items-center w-1/4 py-1 text-gray-500 dark:text-gray-400 hover:text-kalamRed dark:hover:text-kalamRed transition">
+            <i class="fa-regular fa-file-pdf text-lg mb-1"></i><span class="text-[10px] font-bold">PDF to JPG</span>
+        </button>
+        <button onclick="showHistorySection()" class="flex flex-col items-center w-1/4 py-1 text-gray-500 dark:text-gray-400 hover:text-kalamRed dark:hover:text-kalamRed transition">
+            <i class="fa-solid fa-clock-rotate-left text-lg mb-1"></i><span class="text-[10px] font-bold">History</span>
+        </button>
+    </div>
+
+    <div id="previewLightboxModal" class="hide fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
+        <button onclick="closePreviewModal()" class="absolute top-4 right-4 text-white hover:text-kalamRed text-3xl transition z-[80]"><i class="fa-solid fa-xmark"></i></button>
+        <div class="max-w-4xl max-h-[85vh] flex items-center justify-center">
+            <img id="lightboxPreviewImage" src="" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <div id="cropModal" class="hide fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] shadow-2xl">
+            <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                <h3 class="font-bold text-xl dark:text-white">Crop & Adjust Image</h3>
+                <button onclick="closeCropModal()" class="text-gray-500 dark:text-gray-400 hover:text-red-500 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 overflow-hidden flex flex-col md:flex-row bg-gray-900">
+                <div class="flex-1 h-[50vh] md:h-full p-4 flex items-center justify-center">
+                    <img id="cropImage" src="" class="max-w-full max-h-full">
+                </div>
+                <div class="w-full md:w-72 bg-white dark:bg-gray-800 p-5 overflow-y-auto border-l dark:border-gray-700">
+                    <h4 class="font-bold mb-4 text-sm text-gray-600 dark:text-gray-300 uppercase tracking-wider">Fixed Ratios</h4>
+                    <div class="grid grid-cols-2 gap-3 mb-8">
+                        <button onclick="setAspectRatio(NaN)" class="bg-gray-100 dark:bg-gray-700 p-3 text-sm font-semibold rounded-xl hover:bg-red-50 hover:text-kalamRed dark:text-white transition">Free Form</button>
+                        <button onclick="setAspectRatio(1)" class="bg-gray-100 dark:bg-gray-700 p-3 text-sm font-semibold rounded-xl hover:bg-red-50 hover:text-kalamRed dark:text-white transition">1:1 Square</button>
+                        <button onclick="setAspectRatio(3.5/4.5)" class="bg-gray-100 dark:bg-gray-700 p-3 text-sm font-semibold rounded-xl hover:bg-red-50 hover:text-kalamRed dark:text-white transition">Passport</button>
+                        <button onclick="setAspectRatio(8.5/5.5)" class="bg-gray-100 dark:bg-gray-700 p-3 text-sm font-semibold rounded-xl hover:bg-red-50 hover:text-kalamRed dark:text-white transition">PAN/ID Card</button>
+                    </div>
+                    <button onclick="applyCrop()" class="w-full btn-red text-white py-4 rounded-xl shadow-lg font-bold text-lg">Apply Crop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="passwordModal" class="hide fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-lock text-2xl text-kalamRed"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">Encrypted File Protected</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">This PDF document requires a password to open.</p>
+                <p id="passwordErrorText" class="text-sm font-bold text-red-500 mt-2 hide">Incorrect Password. Please try again.</p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Enter PDF Password</label>
+                <input type="password" id="pdfPasswordInput" class="w-full border dark:border-gray-600 rounded-xl p-3 bg-gray-50 dark:bg-gray-700 dark:text-white outline-none focus:border-kalamRed text-center tracking-widest font-bold" placeholder="••••••••">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="cancelPasswordPrompt()" class="w-1/2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-800 dark:text-white font-bold py-3 rounded-xl transition">Cancel</button>
+                <button onclick="submitPasswordPrompt()" class="w-1/2 btn-red text-white font-bold py-3 rounded-xl shadow-md">Unlock PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="processingOverlay" class="hide fixed inset-0 bg-white/95 dark:bg-gray-900/95 z-[60] flex flex-col items-center justify-center backdrop-blur-sm px-4">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl text-center border border-gray-100 dark:border-gray-700">
+            <div class="loader mx-auto mb-6"></div>
+            <h2 id="loadingText" class="text-2xl font-extrabold text-gray-800 dark:text-white mb-2">Processing...</h2>
+            <p id="processingFileName" class="text-sm text-kalamRed font-semibold mb-6 truncate">Preparing files...</p>
+            <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 mb-3 overflow-hidden shadow-inner">
+                <div id="progressBar" class="bg-kalamRed h-3 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+            <div class="flex justify-between text-xs font-bold text-gray-500 dark:text-gray-400">
+                <span id="progressPercent">0%</span>
+                <span id="estimatedTime">Estimating time...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ================= PWA SERVICE WORKER INJECTION ================= */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                const CACHE_NAME = 'kds-cache-v1';
+                self.addEventListener('install', event => { self.skipWaiting(); });
+                self.addEventListener('activate', event => { event.waitUntil(clients.claim()); });
+                self.addEventListener('fetch', event => {
+                    event.respondWith(caches.match(event.request).then(response => {
+                        return response || fetch(event.request);
+                    }));
+                });`;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Registration failed:', err));
+            });
+        }
+
+        /* ================= DARK MODE UTILS ================= */
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            html.classList.toggle('dark');
+            
+            if(html.classList.contains('dark')) {
+                icon.classList.remove('fa-moon', 'text-gray-600');
+                icon.classList.add('fa-sun', 'text-yellow-400');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.remove('fa-sun', 'text-yellow-400');
+                icon.classList.add('fa-moon', 'text-gray-600');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+            document.getElementById('themeIcon').classList.replace('text-gray-600', 'text-yellow-400');
+        }
+
+        let imageFiles = [];
+        let extractedPdfPages = [];
+        let currentEditingIndex = null;
+        let cropper = null;
+        let activePasswordBuffer = null;
+        let activePasswordFileName = '';
+
+        // Added variables for tools
+        let toolsFiles = { merge: [], split: null, lock: null, unlock: null, esign: null, compressPdf: null, imageCompress: null, ocr: null, watermarkPdf: null, watermarkLogo: null };
+
+        const homeSection = document.getElementById('homeSection');
+        const jpgToPdfEditor = document.getElementById('jpgToPdfEditor');
+        const pdfToJpgEditor = document.getElementById('pdfToJpgEditor');
+        const historySection = document.getElementById('historySection');
+        
+        // Extended Tool sections
+        const toolSections = ['mergeEditor', 'splitEditor', 'lockEditor', 'unlockEditor', 'esignEditor', 'qrEditor', 'compressPdfEditor', 'imageCompressEditor', 'ocrEditor', 'watermarkEditor'];
+
+        const overlay = document.getElementById('processingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const processingFileName = document.getElementById('processingFileName');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const estimatedTime = document.getElementById('estimatedTime');
+        const hamburgerDropdown = document.getElementById('hamburgerDropdown');
+
+        function toggleDropdownMenu() { hamburgerDropdown.classList.toggle('hide'); }
+
+        function hideAllSections() {
+            homeSection.classList.add('hide');
+            jpgToPdfEditor.classList.add('hide');
+            pdfToJpgEditor.classList.add('hide');
+            historySection.classList.add('hide');
+            toolSections.forEach(id => document.getElementById(id).classList.add('hide'));
+        }
+
+        function goHome() {
+            hideAllSections();
+            homeSection.classList.remove('hide');
+            window.scrollTo(0,0);
+        }
+
+        function showToolSection(sectionId) {
+            hideAllSections();
+            document.getElementById(sectionId).classList.remove('hide');
+            window.scrollTo(0,0);
+        }
+
+        function showHistorySection() {
+            hideAllSections();
+            historySection.classList.remove('hide');
+            renderHistoryList();
+            window.scrollTo(0,0);
+        }
+
+        const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 10));
+
+        function resetLoader(title) {
+            loadingText.textContent = title;
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            estimatedTime.textContent = 'Calculating...';
+            overlay.classList.remove('hide');
+        }
+
+        function updateLoader(current, total, filename) {
+            const percent = Math.round((current / total) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
+            processingFileName.textContent = filename;
+            let timeRemaining = Math.max(1, Math.round(((total - current) * 0.3)));
+            estimatedTime.textContent = current === total ? 'Finalizing Data...' : `~${timeRemaining} sec remaining`;
+        }
+
+        /* ================= LIGHTBOX PREVIEW CONTROLLERS ================= */
+        function openPreviewModal(url) {
+            document.getElementById('lightboxPreviewImage').src = url;
+            document.getElementById('previewLightboxModal').classList.remove('hide');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewLightboxModal').classList.add('hide');
+            document.getElementById('lightboxPreviewImage').src = '';
+        }
+        function viewImagePreview(index) { openPreviewModal(imageFiles[index].previewUrl); }
+        function viewPdfPagePreview(index) { openPreviewModal(extractedPdfPages[index]); }
+
+        /* ================= ADVANCED HISTORY ENGINE (IndexedDB / LocalForage) ================= */
+        async function saveLogToHistory(operationType, targetName, counts, filePayload) {
+            let logs = JSON.parse(localStorage.getItem('kds_history_logs') || '[]');
+            const newId = 'kds_id_' + Date.now();
+            const newEntry = {
+                id: newId,
+                type: operationType,
+                filename: targetName,
+                meta: counts,
+                timestamp: new Date().toLocaleString()
+            };
+            logs.unshift(newEntry);
+            if(logs.length > 30) {
+                const removedItem = logs.pop();
+                await localforage.removeItem(removedItem.id);
+            }
+            localStorage.setItem('kds_history_logs', JSON.stringify(logs));
+            await localforage.setItem(newId, filePayload);
+            if (!document.getElementById('historySection').classList.contains('hide')) renderHistoryList(); 
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyListContainer');
+            let logs = JSON.parse(localStorage.getItem('kds_history_logs') || '[]');
+            
+            if(logs.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-gray-400 dark:text-gray-500 font-medium"><i class="fa-solid fa-folder-open text-4xl mb-3 block"></i>No local activity history entries found.</div>`;
+                return;
+            }
+            container.innerHTML = '';
+            logs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/40 rounded-2xl border border-gray-100 dark:border-gray-700";
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden pr-2">
+                        <div class="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
+                            <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
+                        </div>
+                        <div class="truncate">
+                            <h4 class="font-bold text-sm truncate dark:text-white">${log.filename}</h4>
+                            <p class="text-xs text-gray-400 mt-0.5">${log.type} • ${log.meta} • ${log.timestamp}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="downloadFromHistory('${log.id}', '${log.filename}')" class="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-500 p-2 rounded-lg text-sm transition" title="Redownload File"><i class="fa-solid fa-download"></i></button>
+                        <button onclick="deleteHistoryEntry('${log.id}')" class="bg-red-50 hover:bg-red-100 dark:bg-red-900/30 text-red-500 p-2 rounded-lg text-sm transition" title="Delete entry"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function downloadFromHistory(id, filename) {
+            try {
+                resetLoader("Retrieving Secure File...");
+                const payload = await localforage.getItem(id);
+                if (!payload) { alert("File data not found in local memory."); overlay.classList.add('hide'); return; }
+                if (payload.blob) {
+                    const link = document.createElement('a'); link.href = URL.createObjectURL(payload.blob); link.download = filename; link.click();
+                } else if (payload.images) {
+                    processingFileName.textContent = "Packing images into ZIP...";
+                    const zip = new JSZip();
+                    const rootName = filename.split('.')[0] || 'Extracted_Images';
+                    for (let i = 0; i < payload.images.length; i++) {
+                        const base64Data = payload.images[i].split(',')[1];
+                        zip.file(`${rootName}_Page_${i + 1}.jpg`, base64Data, {base64: true});
+                    }
+                    const content = await zip.generateAsync({type:"blob"});
+                    const link = document.createElement('a'); link.href = URL.createObjectURL(content); link.download = `${rootName}_HD_Images.zip`; link.click();
+                }
+                overlay.classList.add('hide');
+            } catch(e) { console.error(e); alert("Error retrieving file."); overlay.classList.add('hide'); }
+        }
+
+        async function deleteHistoryEntry(id) {
+            let logs = JSON.parse(localStorage.getItem('kds_history_logs') || '[]');
+            logs = logs.filter(item => item.id !== id);
+            localStorage.setItem('kds_history_logs', JSON.stringify(logs));
+            await localforage.removeItem(id);
+            renderHistoryList();
+        }
+
+        async function clearAllHistory() {
+            if(confirm("Are you entirely sure you want to purge all history and saved files?")) {
+                localStorage.removeItem('kds_history_logs'); await localforage.clear(); renderHistoryList();
+            }
+        }
+
+
+        /* ================= ORIGINAL PIPELINES (IMG2PDF & PDF2JPG) ================= */
+        document.getElementById('fileInput').addEventListener('change', (e) => handleJpgFiles(e.target.files));
+        async function handleJpgFiles(files) {
+            if (files.length === 0) return;
+            hideAllSections();
+            document.getElementById('jpgToPdfEditor').classList.remove('hide');
+            resetLoader("Importing Images...");
+            const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+            for (let i = 0; i < validFiles.length; i++) {
+                const file = validFiles[i];
+                updateLoader(i + 1, validFiles.length, file.name);
+                await yieldToMain();
+                const dataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file);
+                });
+                imageFiles.push({ previewUrl: dataUrl, name: file.name });
+            }
+            renderJpgGrid();
+            overlay.classList.add('hide');
+            document.getElementById('fileInput').value = "";
+        }
+        function renderJpgGrid() { /* unchanged */
+            const grid = document.getElementById('imageGrid'); grid.innerHTML = '';
+            document.getElementById('imageCount').textContent = imageFiles.length;
+            imageFiles.forEach((imgObj, index) => {
+                const card = document.createElement('div');
+                card.className = 'image-card relative group bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 aspect-[3/4] flex items-center justify-center shadow-sm hover:shadow-md transition';
+                card.innerHTML = `
+                    <div class="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-bold z-10">${index + 1}</div>
+                    <img src="${imgObj.previewUrl}" class="max-w-full max-h-full object-contain p-2">
+                    <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                        <button onclick="viewImagePreview(${index})" class="bg-blue-500 text-white w-10 h-10 rounded-full shadow-lg text-lg hover:bg-blue-600 hover:scale-110 transition"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="openCropModal(${index})" class="bg-white text-gray-900 w-10 h-10 rounded-full shadow-lg text-lg hover:bg-gray-200 hover:scale-110 transition"><i class="fa-solid fa-crop-simple"></i></button>
+                        <button onclick="deleteImage(${index})" class="bg-[#e5322d] text-white w-10 h-10 rounded-full shadow-lg text-lg hover:bg-red-700 hover:scale-110 transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+        function deleteImage(index) { imageFiles.splice(index, 1); renderJpgGrid(); if(imageFiles.length === 0) goHome(); }
+        new Sortable(document.getElementById('imageGrid'), { animation: 200, ghostClass: 'opacity-50', onEnd: function (evt) { const itemEl = imageFiles.splice(evt.oldIndex, 1)[0]; imageFiles.splice(evt.newIndex, 0, itemEl); renderJpgGrid(); }});
+
+        document.getElementById('convertPdfBtn').addEventListener('click', async () => {
+            if (imageFiles.length === 0) return;
+            resetLoader("Converting to PDF...");
+            const { jsPDF } = window.jspdf;
+            const formatType = document.getElementById('pageSize').value;
+            const orientation = document.getElementById('orientation').value;
+            const margin = parseInt(document.getElementById('margin').value);
+            let doc = null; let exportFilename = 'Kalam_Digital_Seva_Doc.pdf';
+            for (let i = 0; i < imageFiles.length; i++) {
+                updateLoader(i + 1, imageFiles.length, `Compiling Page ${i + 1}`);
+                await yieldToMain();
+                const imgObj = imageFiles[i];
+                if(i === 0 && imgObj.name) exportFilename = imgObj.name.split('.')[0] + "_converted.pdf";
+                const img = new Image(); await new Promise((res) => { img.onload = res; img.src = imgObj.previewUrl; });
+                const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height;
+                const ctx = canvas.getContext('2d'); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0);
+                const safeJpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                let format = formatType; let pageOrientation = orientation;
+                if (formatType === 'fit') { format = [img.width, img.height]; pageOrientation = img.width > img.height ? 'l' : 'p'; }
+                if (i === 0) doc = new jsPDF({ orientation: pageOrientation, unit: 'mm', format: format, compress: true }); else doc.addPage(format, pageOrientation);
+                const maxW = doc.internal.pageSize.getWidth() - (margin * 2); const maxH = doc.internal.pageSize.getHeight() - (margin * 2);
+                let ratio = img.width / img.height; let finalW = maxW, finalH = maxW / ratio;
+                if(finalH > maxH) { finalH = maxH; finalW = finalH * ratio; }
+                const x = margin + ((maxW - finalW) / 2); const y = margin + ((maxH - finalH) / 2);
+                doc.addImage(safeJpegDataUrl, 'JPEG', x, y, finalW, finalH, undefined, 'FAST');
+            }
+            processingFileName.textContent = "Saving Output File..."; await yieldToMain();
+            const pdfBlob = doc.output('blob'); doc.save(exportFilename);
+            saveLogToHistory('Image to PDF', exportFilename, `${imageFiles.length} Images`, { blob: pdfBlob });
+            overlay.classList.add('hide'); goHome();
+        });
+
+
+        /* PDF to JPG Extraction Logic */
+        document.getElementById('pdfInput').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            activePasswordFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(evt) { activePasswordBuffer = evt.target.result; executePdfExtractionRoutine(''); };
+            reader.readAsArrayBuffer(file);
+        });
+
+        async function executePdfExtractionRoutine(passwordString) {
+            hideAllSections();
+            document.getElementById('passwordErrorText').classList.add('hide');
+            resetLoader("Analyzing Document Engine..."); extractedPdfPages = [];
+            try {
+                const loadingTask = pdfjsLib.getDocument({ 
+                    data: new Uint8Array(activePasswordBuffer.slice(0)), password: passwordString,
+                    cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/', cMapPacked: true, standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/standard_fonts/'
+                });
+                const pdf = await loadingTask.promise;
+                const totalPages = pdf.numPages;
+                for (let i = 1; i <= totalPages; i++) {
+                    updateLoader(i, totalPages, `Rendering HD Page ${i} of ${totalPages}`); await yieldToMain();
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 3.0 });
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    extractedPdfPages.push(canvas.toDataURL('image/jpeg', 1.0));
+                }
+                document.getElementById('passwordModal').classList.add('hide'); document.getElementById('pdfPasswordInput').value = '';
+                saveLogToHistory('PDF to JPG', activePasswordFileName, `${totalPages} Pages Extracted`, { images: extractedPdfPages });
+                renderPdfToJpgGrid(); document.getElementById('pdfToJpgEditor').classList.remove('hide');
+            } catch (error) {
+                if (error.name === "PasswordException") {
+                    overlay.classList.add('hide'); const pwdInput = document.getElementById('pdfPasswordInput');
+                    if(pwdInput.value !== '') document.getElementById('passwordErrorText').classList.remove('hide');
+                    pwdInput.value = ''; document.getElementById('passwordModal').classList.remove('hide');
+                } else { alert("Error processing PDF: " + error.message); goHome(); }
+            } finally { overlay.classList.add('hide'); document.getElementById('pdfInput').value = ""; }
+        }
+
+        function cancelPasswordPrompt() { document.getElementById('passwordModal').classList.add('hide'); goHome(); }
+        function submitPasswordPrompt() { executePdfExtractionRoutine(document.getElementById('pdfPasswordInput').value); }
+        function renderPdfToJpgGrid() {
+            const grid = document.getElementById('pdfPagesGrid'); grid.innerHTML = '';
+            extractedPdfPages.forEach((dataUrl, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3 rounded-2xl shadow-sm text-center flex flex-col';
+                card.innerHTML = `
+                    <div class="relative aspect-[3/4] mb-4 border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center overflow-hidden group">
+                        <img src="${dataUrl}" class="max-w-full max-h-full object-contain p-1">
+                        <div class="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">PG ${index + 1}</div>
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="viewPdfPagePreview(${index})" class="bg-white text-gray-900 px-3 py-1.5 rounded-lg font-bold text-xs shadow-md hover:bg-gray-100 transition flex items-center gap-1"><i class="fa-solid fa-eye"></i> Preview</button>
+                        </div>
+                    </div>
+                    <a href="${dataUrl}" download="Page_${index + 1}.jpg" class="mt-auto block w-full bg-gray-800 dark:bg-black text-white py-3 rounded-xl font-bold hover:bg-black dark:hover:bg-gray-800 transition shadow-md text-sm"><i class="fa-solid fa-download mr-1"></i> Save JPG</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        document.getElementById('downloadZipBtn').addEventListener('click', async () => {
+            if(extractedPdfPages.length === 0) return; resetLoader("Assembling ZIP...");
+            const zip = new JSZip(); const rootName = activePasswordFileName.split('.')[0] || 'Extracted_Images';
+            for (let i = 0; i < extractedPdfPages.length; i++) {
+                updateLoader(i + 1, extractedPdfPages.length, `Packing Page ${i + 1}`); await yieldToMain();
+                zip.file(`${rootName}_Page_${i + 1}.jpg`, extractedPdfPages[i].split(',')[1], {base64: true});
+            }
+            const content = await zip.generateAsync({type:"blob"});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(content); link.download = `${rootName}_HD_Images.zip`; link.click();
+            overlay.classList.add('hide');
+        });
+
+        // Cropper
+        function openCropModal(index) {
+            currentEditingIndex = index; document.getElementById('cropImage').src = imageFiles[index].previewUrl; document.getElementById('cropModal').classList.remove('hide');
+            if (cropper) cropper.destroy(); cropper = new Cropper(document.getElementById('cropImage'), { viewMode: 1, autoCropArea: 1, background: false, responsive: true });
+        }
+        function closeCropModal() { document.getElementById('cropModal').classList.add('hide'); if (cropper) { cropper.destroy(); cropper = null; } }
+        function setAspectRatio(ratio) { if (cropper) cropper.setAspectRatio(ratio); }
+        function applyCrop() {
+            if (!cropper) return;
+            imageFiles[currentEditingIndex].previewUrl = cropper.getCroppedCanvas({ imageSmoothingEnabled: true, imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.95);
+            renderJpgGrid(); closeCropModal();
+        }
+
+        /* ================= PREMIUM TOOLS IMPLEMENTATIONS ================= */
+
+        // 1. MERGE PDF
+        document.getElementById('mergeInput').addEventListener('change', (e) => {
+            toolsFiles.merge = Array.from(e.target.files);
+            const list = document.getElementById('mergeList');
+            list.innerHTML = '';
+            if (toolsFiles.merge.length > 0) {
+                toolsFiles.merge.forEach((f, i) => {
+                    list.innerHTML += `<div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 text-sm font-semibold flex items-center justify-between"><span class="truncate">${f.name}</span><span class="text-xs text-gray-500">${(f.size/1024/1024).toFixed(2)}MB</span></div>`;
+                });
+                document.getElementById('executeMergeBtn').classList.remove('hide');
+            }
+        });
+        document.getElementById('executeMergeBtn').addEventListener('click', async () => {
+            if (!toolsFiles.merge.length) return;
+            resetLoader("Merging PDFs...");
+            try {
+                const { PDFDocument } = PDFLib;
+                const mergedPdf = await PDFDocument.create();
+                for (let i = 0; i < toolsFiles.merge.length; i++) {
+                    updateLoader(i + 1, toolsFiles.merge.length, `Processing ${toolsFiles.merge[i].name}`);
+                    await yieldToMain();
+                    const arrayBuffer = await toolsFiles.merge[i].arrayBuffer();
+                    const pdf = await PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                }
+                const pdfBytes = await mergedPdf.save();
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                saveLogToHistory('Merge PDF', 'Merged_Document.pdf', `${toolsFiles.merge.length} Files`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Merged_Document.pdf'; link.click();
+            } catch(e) { alert("Error merging PDFs"); console.error(e); }
+            finally { overlay.classList.add('hide'); document.getElementById('mergeInput').value = ""; toolsFiles.merge = []; document.getElementById('mergeList').innerHTML = ''; document.getElementById('executeMergeBtn').classList.add('hide'); goHome(); }
+        });
+
+        // 2. SPLIT PDF
+        document.getElementById('splitInput').addEventListener('change', (e) => {
+            toolsFiles.split = e.target.files[0];
+            if(toolsFiles.split) {
+                document.getElementById('splitFileName').textContent = toolsFiles.split.name;
+                document.getElementById('splitControls').classList.remove('hide');
+            }
+        });
+        document.getElementById('executeSplitBtn').addEventListener('click', async () => {
+            const rangeStr = document.getElementById('splitRange').value;
+            if(!toolsFiles.split || !rangeStr) return alert("Please select a PDF and provide valid page ranges.");
+            resetLoader("Splitting PDF...");
+            try {
+                const { PDFDocument } = PDFLib;
+                const arrayBuffer = await toolsFiles.split.arrayBuffer();
+                const sourcePdf = await PDFDocument.load(arrayBuffer);
+                const totalPages = sourcePdf.getPageCount();
+                
+                let pagesToKeep = new Set();
+                const parts = rangeStr.replace(/\s+/g, '').split(',');
+                parts.forEach(part => {
+                    if (part.includes('-')) {
+                        let [start, end] = part.split('-').map(Number);
+                        if (start > 0 && end <= totalPages && start <= end) { for(let i=start; i<=end; i++) pagesToKeep.add(i-1); }
+                    } else {
+                        let num = parseInt(part);
+                        if(num > 0 && num <= totalPages) pagesToKeep.add(num-1);
+                    }
+                });
+                let pagesArray = Array.from(pagesToKeep).sort((a,b)=>a-b);
+                if(pagesArray.length === 0) throw new Error("Invalid page ranges");
+
+                const newPdf = await PDFDocument.create();
+                const copiedPages = await newPdf.copyPages(sourcePdf, pagesArray);
+                copiedPages.forEach(p => newPdf.addPage(p));
+                
+                const pdfBytes = await newPdf.save();
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                saveLogToHistory('Split PDF', 'Split_' + toolsFiles.split.name, `${pagesArray.length} Pages`, { blob: blob });
+                
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Split_' + toolsFiles.split.name; link.click();
+            } catch(e) { alert("Error splitting PDF. Check page limits."); console.error(e); }
+            finally { overlay.classList.add('hide'); document.getElementById('splitInput').value = ""; toolsFiles.split = null; document.getElementById('splitControls').classList.add('hide'); document.getElementById('splitRange').value = ''; goHome(); }
+        });
+
+        // 3. LOCK PDF (Rasterize & Encrypt via jsPDF)
+        document.getElementById('lockInput').addEventListener('change', (e) => {
+            toolsFiles.lock = e.target.files[0];
+            if(toolsFiles.lock) {
+                document.getElementById('lockFileName').textContent = toolsFiles.lock.name;
+                document.getElementById('lockControls').classList.remove('hide');
+            }
+        });
+        document.getElementById('executeLockBtn').addEventListener('click', async () => {
+            const pwd = document.getElementById('lockPassword').value;
+            if(!toolsFiles.lock || !pwd) return alert("Please provide a password.");
+            resetLoader("Encrypting PDF Document...");
+            try {
+                const { jsPDF } = window.jspdf;
+                const buffer = await toolsFiles.lock.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer), cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/', cMapPacked: true }).promise;
+                const totalPages = pdf.numPages;
+                
+                let outDoc = new jsPDF({ unit: 'pt', encryption: { userPassword: pwd, ownerPassword: pwd, userPermissions: ["print"] } });
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    updateLoader(i, totalPages, `Securing page ${i}/${totalPages}`); await yieldToMain();
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 2.0 }); 
+                    
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    if(i > 1) outDoc.addPage([viewport.width, viewport.height]);
+                    else outDoc.deletePage(1), outDoc.addPage([viewport.width, viewport.height]), outDoc.setPage(1);
+                    
+                    outDoc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height, undefined, 'FAST');
+                }
+                
+                const blob = outDoc.output('blob');
+                saveLogToHistory('Lock PDF', 'Locked_' + toolsFiles.lock.name, `Encrypted`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Locked_' + toolsFiles.lock.name; link.click();
+                
+            } catch(e) { alert("Error encrypting PDF."); console.error(e); }
+            finally { overlay.classList.add('hide'); document.getElementById('lockInput').value = ""; toolsFiles.lock = null; document.getElementById('lockControls').classList.add('hide'); document.getElementById('lockPassword').value = ''; goHome(); }
+        });
+
+        // 4. UNLOCK PDF (Rasterize locked, build unlocked)
+        document.getElementById('unlockInput').addEventListener('change', (e) => {
+            toolsFiles.unlock = e.target.files[0];
+            if(toolsFiles.unlock) {
+                document.getElementById('unlockFileName').textContent = toolsFiles.unlock.name;
+                document.getElementById('unlockControls').classList.remove('hide');
+            }
+        });
+        document.getElementById('executeUnlockBtn').addEventListener('click', async () => {
+            const pwd = document.getElementById('unlockPassword').value;
+            if(!toolsFiles.unlock || !pwd) return alert("Please provide the correct password.");
+            resetLoader("Decrypting PDF Document...");
+            try {
+                const { jsPDF } = window.jspdf;
+                const buffer = await toolsFiles.unlock.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer), password: pwd, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/', cMapPacked: true }).promise;
+                const totalPages = pdf.numPages;
+                
+                let outDoc = new jsPDF({ unit: 'pt' });
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    updateLoader(i, totalPages, `Extracting unsecured page ${i}/${totalPages}`); await yieldToMain();
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    if(i > 1) outDoc.addPage([viewport.width, viewport.height]);
+                    else outDoc.deletePage(1), outDoc.addPage([viewport.width, viewport.height]), outDoc.setPage(1);
+                    
+                    outDoc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height, undefined, 'FAST');
+                }
+                
+                const blob = outDoc.output('blob');
+                saveLogToHistory('Unlock PDF', 'Unlocked_' + toolsFiles.unlock.name, `Decrypted`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Unlocked_' + toolsFiles.unlock.name; link.click();
+                
+            } catch(error) { 
+                if (error.name === "PasswordException") alert("Incorrect password provided!");
+                else { alert("Error decrypting PDF."); console.error(error); }
+            }
+            finally { overlay.classList.add('hide'); document.getElementById('unlockInput').value = ""; toolsFiles.unlock = null; document.getElementById('unlockControls').classList.add('hide'); document.getElementById('unlockPassword').value = ''; goHome(); }
+        });
+
+        // 5. eSIGN PDF
+        const sigCanvas = document.getElementById('signatureCanvas');
+        const sigCtx = sigCanvas.getContext('2d');
+        let isDrawing = false;
+        sigCanvas.addEventListener('mousedown', (e) => { isDrawing = true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX, e.offsetY); });
+        sigCanvas.addEventListener('mousemove', (e) => { if(isDrawing) { sigCtx.lineTo(e.offsetX, e.offsetY); sigCtx.stroke(); } });
+        sigCanvas.addEventListener('mouseup', () => isDrawing = false);
+        sigCanvas.addEventListener('mouseout', () => isDrawing = false);
+        sigCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = sigCanvas.getBoundingClientRect(); isDrawing = true; sigCtx.beginPath(); sigCtx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top); });
+        sigCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(isDrawing) { const touch = e.touches[0]; const rect = sigCanvas.getBoundingClientRect(); sigCtx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top); sigCtx.stroke(); }});
+        sigCanvas.addEventListener('touchend', () => isDrawing = false);
+
+        function clearSignature() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); }
+
+        document.getElementById('esignInput').addEventListener('change', (e) => {
+            toolsFiles.esign = e.target.files[0];
+            if(toolsFiles.esign) {
+                document.getElementById('esignFileName').textContent = toolsFiles.esign.name;
+                document.getElementById('esignControls').classList.remove('hide');
+                sigCtx.lineWidth = 2;
+                sigCtx.strokeStyle = document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000';
+            }
+        });
+
+        document.getElementById('executeEsignBtn').addEventListener('click', async () => {
+            if(!toolsFiles.esign) return;
+            resetLoader("Applying Signature...");
+            try {
+                const { PDFDocument } = PDFLib;
+                const buffer = await toolsFiles.esign.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(buffer);
+                const sigDataUrl = sigCanvas.toDataURL('image/png');
+                const pngImage = await pdfDoc.embedPng(sigDataUrl);
+                const pages = pdfDoc.getPages();
+                const firstPage = pages[0];
+                const { width, height } = firstPage.getSize();
+                const sigWidth = 150; const sigHeight = 75;
+                firstPage.drawImage(pngImage, { x: (width / 2) - (sigWidth/2), y: 50, width: sigWidth, height: sigHeight });
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                saveLogToHistory('eSign PDF', 'Signed_' + toolsFiles.esign.name, `Signed`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Signed_' + toolsFiles.esign.name; link.click();
+            } catch(e) { alert("Error applying signature."); console.error(e); }
+            finally { overlay.classList.add('hide'); document.getElementById('esignInput').value = ""; toolsFiles.esign = null; document.getElementById('esignControls').classList.add('hide'); clearSignature(); goHome(); }
+        });
+
+        // 6. QR GEN
+        let qrInstance = null;
+        function generateQR() {
+            const text = document.getElementById('qrText').value;
+            if(!text) return alert("Please enter text or URL");
+            document.getElementById('qrResultContainer').classList.remove('hide');
+            qrInstance = new QRious({ element: document.getElementById('qrCanvas'), value: text, size: 250, padding: 15 });
+        }
+        function downloadQR() {
+            if(!qrInstance) return;
+            const canvas = document.getElementById('qrCanvas');
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'KDS_QRCode.png';
+            link.click();
+        }
+
+        /* ================= NEW UPGRADED TOOLS ================= */
+
+        // 7. COMPRESS PDF
+        document.getElementById('compressPdfInput').addEventListener('change', (e) => {
+            toolsFiles.compressPdf = e.target.files[0];
+            if(toolsFiles.compressPdf) {
+                document.getElementById('compressPdfFileName').textContent = toolsFiles.compressPdf.name;
+                document.getElementById('compressPdfControls').classList.remove('hide');
+            }
+        });
+        
+        document.getElementById('executeCompressPdfBtn').addEventListener('click', async () => {
+            if(!toolsFiles.compressPdf) return;
+            resetLoader("Compressing PDF...");
+            try {
+                const { jsPDF } = window.jspdf;
+                // Parse dynamic quality and scale options
+                const compressVals = document.getElementById('pdfCompressLevel').value.split('|');
+                const qualityVal = parseFloat(compressVals[0]);
+                const scaleVal = parseFloat(compressVals[1]);
+
+                const buffer = await toolsFiles.compressPdf.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer), cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/', cMapPacked: true }).promise;
+                const totalPages = pdf.numPages;
+                
+                let outDoc = new jsPDF({ unit: 'pt', compress: true });
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    updateLoader(i, totalPages, `Compressing Page ${i}/${totalPages}`); await yieldToMain();
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: scaleVal }); 
+                    
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', qualityVal); // Dynamic Quality based on selection
+                    
+                    const actualViewport = page.getViewport({ scale: 1.0 }); // maintain original page size structurally
+                    if(i > 1) outDoc.addPage([actualViewport.width, actualViewport.height]);
+                    else outDoc.deletePage(1), outDoc.addPage([actualViewport.width, actualViewport.height]), outDoc.setPage(1);
+                    
+                    outDoc.addImage(imgData, 'JPEG', 0, 0, actualViewport.width, actualViewport.height, undefined, 'FAST');
+                }
+                const blob = outDoc.output('blob');
+                saveLogToHistory('Compress PDF', 'Compressed_' + toolsFiles.compressPdf.name, `Resized`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Compressed_' + toolsFiles.compressPdf.name; link.click();
+            } catch(e) { alert("Error compressing PDF."); console.error(e); }
+            finally { overlay.classList.add('hide'); document.getElementById('compressPdfInput').value = ""; toolsFiles.compressPdf = null; document.getElementById('compressPdfControls').classList.add('hide'); goHome(); }
+        });
+
+        // 8. IMAGE COMPRESSOR & HEIC (EXACT KB ALGORITHM)
+        async function compressImageToExactKB(file, targetKB) {
+            return new Promise((resolve, reject) => {
+                const targetBytes = targetKB * 1024;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        let width = img.width;
+                        let height = img.height;
+
+                        const MAX_DIMENSION = 2500;
+                        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                            const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                            width *= ratio; height *= ratio;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        let minQ = 0.01, maxQ = 1.0;
+                        let bestBlob = null;
+                        let attempts = 0;
+
+                        const attemptCompression = () => {
+                            let midQ = (minQ + maxQ) / 2;
+                            canvas.toBlob((blob) => {
+                                attempts++;
+                                
+                                // Acceptable range: Between exact requested size down to 10% below requested size
+                                if (blob.size <= targetBytes && blob.size >= targetBytes * 0.90) {
+                                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {type: 'image/jpeg'}));
+                                    return;
+                                }
+                                
+                                if (blob.size > targetBytes) {
+                                    maxQ = midQ; 
+                                } else {
+                                    minQ = midQ;
+                                    bestBlob = blob; // Best valid output below limit
+                                }
+
+                                if (attempts < 15) {
+                                    attemptCompression();
+                                } else {
+                                    if (bestBlob) {
+                                        resolve(new File([bestBlob], file.name.replace(/\.[^/.]+$/, ".jpg"), {type: 'image/jpeg'}));
+                                    } else {
+                                        // Still too big even at lowest quality, drop resolution by 20%
+                                        width *= 0.8; height *= 0.8;
+                                        canvas.width = width; canvas.height = height;
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        minQ = 0.01; maxQ = 1.0; attempts = 0;
+                                        attemptCompression();
+                                    }
+                                }
+                            }, 'image/jpeg', midQ);
+                        };
+                        attemptCompression();
+                    };
+                    img.onerror = () => reject(new Error("Failed to load image for compression"));
+                };
+            });
+        }
+
+        document.getElementById('imageCompressInput').addEventListener('change', (e) => {
+            toolsFiles.imageCompress = e.target.files[0];
+            if(toolsFiles.imageCompress) {
+                document.getElementById('imageCompressFileName').textContent = toolsFiles.imageCompress.name + ` (${(toolsFiles.imageCompress.size/1024).toFixed(1)} KB)`;
+                document.getElementById('imageCompressControls').classList.remove('hide');
+            }
+        });
+        
+        document.getElementById('executeImageCompressBtn').addEventListener('click', async () => {
+            if(!toolsFiles.imageCompress) return;
+            resetLoader("Running Exact Size Optimization...");
+            let file = toolsFiles.imageCompress;
+            const targetKB = parseInt(document.getElementById('targetKbInput').value) || 50;
+            
+            try {
+                if(file.name.toLowerCase().endsWith('.heic')) {
+                    loadingText.textContent = "Converting Apple HEIC..."; await yieldToMain();
+                    const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg" });
+                    file = new File([convertedBlob], file.name.replace(/\.heic$/i, ".jpg"), { type: "image/jpeg" });
+                }
+
+                loadingText.textContent = "Compressing strictly to " + targetKB + "KB..."; await yieldToMain();
+                
+                // Using the Custom Exact KB logic instead of browserImageCompression wrapper
+                const compressedFile = await compressImageToExactKB(file, targetKB);
+                
+                saveLogToHistory('Image Compress', 'Min_' + compressedFile.name, `${(compressedFile.size/1024).toFixed(1)} KB`, { blob: compressedFile });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(compressedFile); link.download = 'Min_' + compressedFile.name; link.click();
+                
+            } catch(error) { alert("Error processing image: " + error); }
+            finally { overlay.classList.add('hide'); document.getElementById('imageCompressInput').value = ""; toolsFiles.imageCompress = null; document.getElementById('imageCompressControls').classList.add('hide'); goHome(); }
+        });
+
+        // 9. OCR (Image to Text)
+        document.getElementById('ocrInput').addEventListener('change', (e) => {
+            toolsFiles.ocr = e.target.files[0];
+            if(toolsFiles.ocr) {
+                document.getElementById('ocrPreview').src = URL.createObjectURL(toolsFiles.ocr);
+                document.getElementById('ocrControls').classList.remove('hide');
+                document.getElementById('ocrOutput').value = '';
+            }
+        });
+        
+        document.getElementById('executeOcrBtn').addEventListener('click', async () => {
+            if(!toolsFiles.ocr) return;
+            resetLoader("Booting AI Vision Worker...");
+            try {
+                const lang = document.getElementById('ocrLanguage').value;
+                const worker = await Tesseract.createWorker({
+                    logger: m => {
+                        if(m.status === 'recognizing text') {
+                            let prog = Math.round(m.progress * 100);
+                            progressBar.style.width = `${prog}%`;
+                            progressPercent.textContent = `${prog}%`;
+                            loadingText.textContent = "Extracting Text...";
+                        }
+                    }
+                });
+                await worker.loadLanguage(lang);
+                await worker.initialize(lang);
+                const { data: { text } } = await worker.recognize(toolsFiles.ocr);
+                
+                document.getElementById('ocrOutput').value = text || "No text could be identified.";
+                await worker.terminate();
+                saveLogToHistory('OCR Extracted', toolsFiles.ocr.name, 'Text Document', { blob: new Blob([text], {type: 'text/plain'}) });
+            } catch(e) { alert("Error reading text."); console.error(e); }
+            finally { overlay.classList.add('hide'); }
+        });
+
+        // 10. Add Watermark / Logo Stamp
+        document.getElementById('watermarkPdfInput').addEventListener('change', (e) => {
+            toolsFiles.watermarkPdf = e.target.files[0];
+            if(toolsFiles.watermarkPdf) {
+                document.getElementById('watermarkFileName').textContent = toolsFiles.watermarkPdf.name;
+                document.getElementById('watermarkControls').classList.remove('hide');
+            }
+        });
+
+        document.getElementById('watermarkLogoInput').addEventListener('change', (e) => {
+            toolsFiles.watermarkLogo = e.target.files[0];
+            if(toolsFiles.watermarkLogo) { document.getElementById('watermarkLogoName').classList.remove('hide'); }
+        });
+
+        document.getElementById('executeWatermarkBtn').addEventListener('click', async () => {
+            if(!toolsFiles.watermarkPdf) return;
+            resetLoader("Stamping Document...");
+            try {
+                const textMark = document.getElementById('watermarkTextInput').value;
+                const { PDFDocument, rgb, degrees } = PDFLib;
+                
+                const buffer = await toolsFiles.watermarkPdf.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(buffer);
+                const pages = pdfDoc.getPages();
+                
+                let embeddedImage = null;
+                if(toolsFiles.watermarkLogo) {
+                    const imgBuffer = await toolsFiles.watermarkLogo.arrayBuffer();
+                    if(toolsFiles.watermarkLogo.type === 'image/png') embeddedImage = await pdfDoc.embedPng(imgBuffer);
+                    else embeddedImage = await pdfDoc.embedJpg(imgBuffer);
+                }
+
+                for (let i = 0; i < pages.length; i++) {
+                    updateLoader(i+1, pages.length, `Stamping Page ${i+1}`); await yieldToMain();
+                    const page = pages[i];
+                    const { width, height } = page.getSize();
+                    
+                    if (embeddedImage) {
+                        const imgDims = embeddedImage.scale(0.5);
+                        page.drawImage(embeddedImage, {
+                            x: (width / 2) - (imgDims.width / 2), y: (height / 2) - (imgDims.height / 2),
+                            width: imgDims.width, height: imgDims.height, opacity: 0.3
+                        });
+                    }
+                    if (textMark) {
+                        page.drawText(textMark, {
+                            x: 50, y: height / 2 - 50,
+                            size: 60, color: rgb(0.8, 0.2, 0.2), opacity: 0.2, rotate: degrees(45)
+                        });
+                    }
+                }
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                saveLogToHistory('Watermark PDF', 'Stamped_' + toolsFiles.watermarkPdf.name, `Marked`, { blob: blob });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'Stamped_' + toolsFiles.watermarkPdf.name; link.click();
+                
+            } catch(e) { alert("Error applying watermark."); console.error(e); }
+            finally { 
+                overlay.classList.add('hide'); document.getElementById('watermarkPdfInput').value = ""; document.getElementById('watermarkLogoInput').value = "";
+                toolsFiles.watermarkPdf = null; toolsFiles.watermarkLogo = null;
+                document.getElementById('watermarkLogoName').classList.add('hide'); document.getElementById('watermarkTextInput').value = '';
+                document.getElementById('watermarkControls').classList.add('hide'); goHome(); 
+            }
+        });
+
+    </script>
+</body>
+</html>
