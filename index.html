@@ -8,8 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
         :root { 
             --primary: #2563eb; 
             --pink-glow: #ff00ff; 
@@ -17,6 +16,7 @@
             --text: #ffffff; 
             --card-bg: rgba(255, 255, 255, 0.05);
             --inner-card: #111827;
+            --sys-font: 'Inter', sans-serif;
         }
 
         /* Light Mode Variables */
@@ -28,7 +28,7 @@
         }
 
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: var(--sys-font); 
             background: var(--bg); 
             color: var(--text); 
             margin: 0; 
@@ -50,11 +50,12 @@
 
         .dash-grid {
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 25px; 
             max-width: 1400px; 
             width: 90%; 
             padding: 20px;
+            align-items: start;
         }
 
         .dash-card {
@@ -67,12 +68,43 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, grid-column 0.3s ease;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
             z-index: 1;
+            height: 100%;
         }
+        
+        /* New Classes for Customization */
+        .dash-card.card-wide {
+            grid-column: span 2;
+        }
+        @media (max-width: 600px) {
+            .dash-card.card-wide { grid-column: span 1; }
+        }
+        .dash-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .edit-mode-active .dash-card {
+            animation: editWobble 2s infinite ease-in-out alternate;
+            border: 2px dashed var(--primary);
+        }
+        @keyframes editWobble {
+            0% { transform: rotate(-1deg); }
+            100% { transform: rotate(1deg); }
+        }
+        .card-controls {
+            position: absolute; top: 10px; right: 10px; display: none; gap: 8px; z-index: 10;
+        }
+        .edit-mode-active .card-controls { display: flex; }
+        .card-controls button {
+            background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 5px; width: 30px; height: 30px; cursor: pointer; transition: 0.2s;
+        }
+        .card-controls button:hover { background: var(--primary); transform: scale(1.1); }
+        .light-theme .card-controls button { background: rgba(255,255,255,0.9); color: #000; border: 1px solid #ccc; }
+
         .light-theme .dash-card { border: 1px solid rgba(0, 0, 0, 0.05); }
 
         .dash-card::before {
@@ -106,150 +138,159 @@
             box-shadow: 0 0 25px rgba(37, 99, 235, 0.6); 
             border-color: var(--primary);
         }
+        .edit-mode-active .dash-card:hover { transform: none; box-shadow: none; }
 
-        .dash-card i { font-size: 2.5rem; color: var(--primary); transition: 0.3s; }
-        .dash-card:hover i { color: var(--pink-glow); transform: scale(1.1); }
+        .dash-card i.main-icon { font-size: 2.5rem; color: var(--primary); transition: 0.3s; }
+        .dash-card:hover i.main-icon { color: var(--pink-glow); transform: scale(1.1); }
         .dash-card h3 { margin: 0; font-size: 1.1rem; color: var(--text); font-weight: 600; }
 
         #main-content { display: none; padding: 50px 20px; text-align: center; }
 
-        /* ==========================================
-           RESUME MAKER STYLING - FIXED PRINT ENGINES
-           ========================================== */
-        #resume-maker-content {
-            display: none;
-            font-family: 'Poppins', sans-serif;
-            background-color: #f1f5f9;
-            color: #000000;
-            padding: 24px 8px;
-            transition: background 0.3s ease;
-        }
+        /* Resume & Calculator CSS */
+        #resume-maker-content { display: none; font-family: 'Poppins', sans-serif; background-color: #f1f5f9; color: #000000; padding: 24px 8px; transition: background 0.3s ease; }
         .light-theme #resume-maker-content { background-color: #e2e8f0; }
-
-        .a4-document-sheet {
-            font-family: 'Arial', sans-serif;
-            color: #000000 !important;
-            background-color: #ffffff !important;
-            width: 210mm;
-            min-height: 296mm;
-            max-height: 296mm;
-            padding: 10mm 15mm;
-            box-sizing: border-box;
-            text-align: left;
-            line-height: 1.35;
-            overflow: hidden;
-        }
-        .main-resume-title {
-            font-size: 24pt !important;
-            font-weight: 900 !important;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #000000 !important;
-            border-bottom: 3px solid #000000 !important;
-            padding-bottom: 2px;
-            display: inline-block;
-        }
-        .strip-title-header {
-            background-color: #e5e7eb !important;
-            font-weight: 800 !important;
-            font-size: 11pt !important;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            margin-top: 10px;
-            margin-bottom: 6px;
-            letter-spacing: 0.8px;
-            color: #000000 !important;
-            border-left: 6px solid #000000 !important;
-        }
-        .cv-data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 4px;
-        }
-        .cv-data-table th, .cv-data-table td {
-            border: 1.5px solid #000000 !important;
-            padding: 4px 8px;
-            font-size: 10pt !important;
-            color: #000000 !important;
-            vertical-align: middle;
-        }
-        .cv-data-table th {
-            font-weight: bold;
-            background-color: #f3f4f6 !important;
-            text-transform: uppercase;
-        }
-        
-        /* Form inputs styling updates for Theme Toggle */
+        .a4-document-sheet { font-family: 'Arial', sans-serif; color: #000000 !important; background-color: #ffffff !important; width: 210mm; min-height: 296mm; max-height: 296mm; padding: 10mm 15mm; box-sizing: border-box; text-align: left; line-height: 1.35; overflow: hidden; }
+        .main-resume-title { font-size: 24pt !important; font-weight: 900 !important; letter-spacing: 3px; text-transform: uppercase; color: #000000 !important; border-bottom: 3px solid #000000 !important; padding-bottom: 2px; display: inline-block; }
+        .strip-title-header { background-color: #e5e7eb !important; font-weight: 800 !important; font-size: 11pt !important; text-transform: uppercase; padding: 4px 10px; margin-top: 10px; margin-bottom: 6px; letter-spacing: 0.8px; color: #000000 !important; border-left: 6px solid #000000 !important; }
+        .cv-data-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        .cv-data-table th, .cv-data-table td { border: 1.5px solid #000000 !important; padding: 4px 8px; font-size: 10pt !important; color: #000000 !important; vertical-align: middle; }
+        .cv-data-table th { font-weight: bold; background-color: #f3f4f6 !important; text-transform: uppercase; }
         .form-card-bg { transition: all 0.3s ease; }
-        .form-input-field {
-            width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; font-size: 15px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease-in-out;
-        }
+        .form-input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; font-size: 15px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease-in-out; }
         .light-theme .form-card-bg { background-color: #ffffff !important; color: #0f172a !important; }
         .light-theme .form-label { color: #334155 !important; }
-        
         .form-input-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
-        .sleek-entry-field {
-            width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease;
-        }
+        .sleek-entry-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1e293b; background-color: #ffffff; transition: all 0.2s ease; }
         .sleek-entry-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
         .form-label { display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 6px; }
         .required-star { color: #ef4444; margin-left: 2px; }
         
-        /* SYSTEM PRINT CORRECTIONS - STRICT SINGLE PAGE FORCE */
         @media print {
             @page { size: A4 portrait; margin: 0mm !important; }
-            html, body {
-                background: #ffffff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-            }
-            #dashboard-overlay, #main-content, #mainWebsiteWrapper, #livePreviewBoxHeader, #resume-maker-content, #cash-counter-btn, #cash-counter-modal, .theme-toggle-btn { display: none !important; }
-            
-            #print-engine-secure-zone {
-                display: block !important; 
-                width: 210mm !important; 
-                height: 297mm !important;
-                max-height: 297mm !important;
-                padding: 12mm 15mm !important; 
-                box-sizing: border-box !important; 
-                background: #ffffff !important; 
-                overflow: hidden !important; 
-                page-break-inside: avoid !important;
-                page-break-after: avoid !important;
-                page-break-before: avoid !important;
-            }
-            #print-engine-secure-zone * {
-                color: #000000 !important;
-            }
+            html, body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            #dashboard-overlay, #main-content, #mainWebsiteWrapper, #livePreviewBoxHeader, #resume-maker-content, #cash-counter-btn, #cash-counter-modal, #top-controls, #standard-calc-btn, #standard-calc-modal, #settingsModal, #profileModal, #analyticsModal, #lockerModal { display: none !important; }
+            #print-engine-secure-zone { display: block !important; width: 210mm !important; height: 297mm !important; max-height: 297mm !important; padding: 12mm 15mm !important; box-sizing: border-box !important; background: #ffffff !important; overflow: hidden !important; page-break-inside: avoid !important; page-break-after: avoid !important; page-break-before: avoid !important; }
+            #print-engine-secure-zone * { color: #000000 !important; }
         }
-
         @media screen {
             #print-engine-secure-zone { display: none !important; }
             .preview-scroll-container { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid #cbd5e1; background-color: #e2e8f0; padding: 24px 16px; }
             .a4-document-sheet { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); margin: 0 auto; }
         }
 
-        /* CASH COUNTER BUTTON GLOW EFFECT */
-        #cash-counter-btn {
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
-            animation: pulseGlow 2s infinite;
-        }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
-            50% { box-shadow: 0 0 25px rgba(37, 99, 235, 0.8); }
-            100% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
-        }
+        .btn-glow { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); animation: pulseGlow 2s infinite; }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); } 50% { box-shadow: 0 0 25px rgba(37, 99, 235, 0.8); } 100% { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); } }
+        .top-menu-item { color: var(--text); background-color: transparent; }
+        .light-theme .top-menu-item { color: #1e293b; }
+        .top-menu-item:hover { background-color: var(--card-bg); }
+        #sideMenu { background-color: var(--inner-card); border: 1px solid rgba(255,255,255,0.1); }
+        .light-theme #sideMenu { background-color: #ffffff; border: 1px solid rgba(0,0,0,0.1); }
+        .search-input-field { background-color: var(--inner-card); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+        .light-theme .search-input-field { background-color: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; }
 
-        /* Floating Theme Switcher Style */
-        .theme-toggle-btn {
-            fixed: top 1.5rem right 1.5rem;
-            transition: all 0.3s ease;
+        /* Custom Scrollbar for Dropdown Menu */
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .light-theme .scrollbar-thin::-webkit-scrollbar-thumb { background: #94a3b8; }
+
+        .calculator-chassis { --panel-bg: #0a0c14; --screen-bg: #111420; --text-white: #ffffff; --text-dim: #5c6784; --cyan-glow: #00f0ff; --green-glow: #00ff66; --pink-glow: #ff0055; --orange-glow: #ff5e00; background-color: var(--panel-bg); width: 100%; max-width: 375px; padding: 26px; border-radius: 28px; display: flex; flex-direction: column; gap: 22px; border: 2px solid rgba(0, 240, 255, 0.55); box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), 0 0 50px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.08), 0 20px 40px rgba(0, 0, 0, 0.75); position: relative; margin: auto; }
+        .display-unit { background-color: var(--screen-bg); padding: 24px; border-radius: 18px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; min-height: 135px; border: 1px solid rgba(255, 255, 255, 0.04); box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.75); overflow: hidden; }
+        .expression-output { color: var(--text-white); font-size: 2.6rem; font-weight: 300; width: 100%; text-align: right; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+        .expression-output::-webkit-scrollbar { display: none; }
+        .live-preview-feed { color: var(--text-dim); font-size: 1.4rem; font-weight: 400; min-height: 2rem; width: 100%; text-align: right; }
+        .live-preview-feed.evaluated-success { color: var(--green-glow); font-weight: 600; text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
+        .keypad-matrix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .calc-btn { height: 62px; border: 1px solid transparent; border-radius: 16px; font-size: 1.4rem; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s ease-in-out; font-family: var(--sys-font); }
+        .calc-btn-num { background-color: #121524; color: #e2e8f0; border-color: rgba(0, 240, 255, 0.18); box-shadow: 0 0 12px rgba(0, 240, 255, 0.22); text-shadow: 0 0 4px rgba(0, 240, 255, 0.5); }
+        .calc-btn-num:hover { background-color: #181d33; color: var(--cyan-glow); border-color: rgba(0, 240, 255, 0.7); box-shadow: 0 0 22px rgba(0, 240, 255, 0.55); text-shadow: 0 0 8px var(--cyan-glow); }
+        .calc-btn-op { background-color: #0c1812; color: var(--green-glow); border-color: rgba(0, 255, 102, 0.18); box-shadow: 0 0 12px rgba(0, 255, 102, 0.22); text-shadow: 0 0 4px rgba(0, 255, 102, 0.5); }
+        .calc-btn-op:hover { background-color: #12241a; color: #2aff83; border-color: rgba(0, 255, 102, 0.7); box-shadow: 0 0 22px rgba(0, 255, 102, 0.55); text-shadow: 0 0 8px #2aff83; }
+        .calc-btn-sys { background-color: #1d1016; color: var(--pink-glow); border-color: rgba(255, 0, 85, 0.18); box-shadow: 0 0 12px rgba(255, 0, 85, 0.22); text-shadow: 0 0 4px rgba(255, 0, 85, 0.5); }
+        .calc-btn-sys:hover { background-color: #2b1320; color: #ff3377; border-color: rgba(255, 0, 85, 0.7); box-shadow: 0 0 22px rgba(255, 0, 85, 0.55); text-shadow: 0 0 8px #ff3377; }
+        .calc-btn-exec { background-color: #2a140a; color: var(--orange-glow); border-color: rgba(255, 94, 0, 0.35); box-shadow: 0 0 15px rgba(255, 94, 0, 0.3); text-shadow: 0 0 4px rgba(255, 94, 0, 0.5); }
+        .calc-btn-exec:hover { background-color: #3b1c0c; color: #ff7c2a; border-color: rgba(255, 94, 0, 0.8); box-shadow: 0 0 25px rgba(255, 94, 0, 0.65); text-shadow: 0 0 10px #ff7c2a; }
+        .calc-btn:active { transform: scale(0.95); opacity: 0.8; }
+
+        /* Settings Modal Styling */
+        #settingsModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
         }
+        .settings-content {
+            background: var(--inner-card); border: 1px solid rgba(255,255,255,0.1);
+            width: 90%; max-width: 600px; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: var(--text);
+            max-height: 90vh; display: flex; flex-direction: column;
+        }
+        .light-theme .settings-content { background: #ffffff; border: 1px solid #cbd5e1; }
+        .settings-header { padding: 20px; border-bottom: 1px solid rgba(150,150,150,0.2); display: flex; justify-content: space-between; align-items: center; }
+        .settings-tabs { display: flex; border-bottom: 1px solid rgba(150,150,150,0.2); background: rgba(0,0,0,0.1); }
+        .tab-btn { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text); opacity: 0.6; transition: 0.3s; border-bottom: 2px solid transparent; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--primary); color: var(--primary); }
+        .tab-content { padding: 20px; overflow-y: auto; flex: 1; display: none; }
+        .tab-content.active { display: block; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(150,150,150,0.1); }
+        .setting-row:last-child { border-bottom: none; }
+        .settings-input, .settings-select { background: rgba(0,0,0,0.2); border: 1px solid rgba(150,150,150,0.3); color: var(--text); padding: 8px 12px; border-radius: 8px; width: 100%; max-width: 200px; }
+        .light-theme .settings-input, .light-theme .settings-select { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+        .sys-toggle { position: relative; width: 50px; height: 26px; background: #cbd5e1; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .sys-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
+        .sys-toggle.active { background: var(--primary); }
+        .sys-toggle.active::after { left: 27px; }
+
+        /* Upgraded Position Buttons */
+        .pos-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: inherit; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .pos-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .light-theme .pos-btn { background: #e2e8f0; border-color: #cbd5e1; color: #334155; }
+        .light-theme .pos-btn:hover { background: var(--primary); color: #fff; }
     </style>
 </head>
 <body>
 
-<button onclick="toggleThemeMode()" class="theme-toggle-btn fixed top-4 right-4 z-50 bg-slate-800 text-white p-3 rounded-full border border-slate-700 shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center">
-    <i id="theme-icon" class="fa fa-sun text-xl text-yellow-400"></i>
-</button>
+<div id="top-controls" class="fixed top-4 right-4 z-[60] flex items-center gap-3">
+    
+    <div class="relative flex items-center">
+        <input type="text" id="topSearchBar" oninput="filterDashboard()" class="w-0 overflow-hidden transition-all duration-300 search-input-field rounded-full px-0 py-2.5 focus:outline-none focus:w-48 sm:focus:w-64 focus:px-4 snd-type" placeholder="Search tools...">
+        <button onclick="toggleSearch()" class="bg-slate-800 text-white p-3 rounded-full border border-slate-700 shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center ml-2 snd-click">
+            <i class="fa fa-search text-xl text-blue-400"></i>
+        </button>
+    </div>
+
+    <button onclick="toggleThemeMode()" class="bg-slate-800 text-white p-3 rounded-full border border-slate-700 shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center snd-click">
+        <i id="theme-icon" class="fa fa-sun text-xl text-yellow-400"></i>
+    </button>
+
+    <div class="relative">
+        <button id="menuToggleBtn" onclick="toggleMenu(event)" class="bg-slate-800 text-white p-3 rounded-full border border-slate-700 shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center snd-click">
+            <i class="fa fa-bars text-xl text-emerald-400"></i>
+        </button>
+        
+        <div id="sideMenu" class="absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl hidden flex-col transition-all transform origin-top-right scale-95 opacity-0 z-[100] max-h-[350px] overflow-y-auto overflow-x-hidden scrollbar-thin">
+            <a href="#" onclick="location.reload()" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-home text-blue-500 w-5 text-center"></i> Home</a>
+            <a href="#" onclick="location.reload()" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-tachometer-alt text-emerald-500 w-5 text-center"></i> Dashboard</a>
+            
+            <a href="#" onclick="openProfileModal(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-user text-purple-500 w-5 text-center"></i> Profile</a>
+            
+            <a href="#" onclick="openEditor()" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-image text-orange-500 w-5 text-center"></i> Passport Photo</a>
+            
+            <a href="#" onclick="openEditor(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-id-card text-yellow-500 w-5 text-center"></i> Aadhaar Tool</a>
+            
+            <a href="#" onclick="window.open('JPG to PDF.html', '_blank'); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-file-pdf text-red-500 w-5 text-center"></i> JPG & PDF Tools</a>
+            <a href="#" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-print text-teal-500 w-5 text-center"></i> Print History</a>
+            <a href="#" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-credit-card text-pink-500 w-5 text-center"></i> Subscription</a>
+            
+            <a href="#" onclick="openLockerModal(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-folder-open text-orange-400 w-5 text-center"></i> Document Locker</a>
+            
+            <a href="#" onclick="openAnalyticsModal(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-chart-bar text-indigo-500 w-5 text-center"></i> Analytics</a>
+            
+            <a href="#" onclick="openSettingsModal(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-cog text-slate-500 w-5 text-center"></i> Settings</a>
+            <a href="#" onclick="window.open('GAME.html', '_blank'); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-gamepad text-purple-500 w-5 text-center"></i> GAME</a>
+            <a href="#" onclick="toggleThemeMode(); toggleMenu(event); return false;" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 border-b border-slate-200/10 transition snd-click"><i class="fa fa-moon text-gray-500 w-5 text-center"></i> Dark Mode</a>
+            <a href="#" class="top-menu-item px-5 py-3 font-medium flex items-center gap-3 transition text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 snd-click"><i class="fa fa-lock w-5 text-center"></i> Logout</a>
+        </div>
+    </div>
+</div>
 
 <div id="dashboard-overlay">
     <div class="dash-header">
@@ -257,70 +298,424 @@
         <p>Premium Digital Tools for Jan Seva Kendra</p>
     </div>
 
-    <div class="dash-grid">
-        <div class="dash-card" onclick="openEditor()">
-            <i class="fa fa-camera-retro"></i>
+    <div class="dash-grid" id="mainDashGrid">
+        <div class="dash-card snd-click" id="tool-photo" data-action="openEditor()">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-photo')" title="Resize"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-photo')" title="Hide"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-camera-retro main-icon"></i>
             <h3>Photo Editor Pro</h3>
         </div>
+        
+        <div class="dash-card snd-click" id="tool-jpg-pdf" data-action="window.open('JPG to PDF.html', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-jpg-pdf')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-jpg-pdf')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-file-pdf main-icon"></i>
+            <h3>JPG & PDF Tools</h3>
+        </div>
 
-        <div class="dash-card" onclick="window.open('https://connect.csc.gov.in/account/authorize?response_type=code&client_id=0f8ca686-5a31-46b8-bb51-d9834ba9fa9d&redirect_uri=https%3A%2F%2Fdigitalseva.csc.gov.in%2Fauth%2Fcallback%2F&state=67128', '_blank')">
-            <i class="fa fa-university"></i>
+        <div class="dash-card snd-click" id="tool-csc" data-action="window.open('https://connect.csc.gov.in/account/authorize?response_type=code&client_id=0f8ca686-5a31-46b8-bb51-d9834ba9fa9d&redirect_uri=https%3A%2F%2Fdigitalseva.csc.gov.in%2Fauth%2Fcallback%2F&state=67128', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-csc')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-csc')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-university main-icon"></i>
             <h3>Digital Seva (CSC)</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://ewallet.uppcl.org/login', '_blank')">
-            <i class="fa fa-wallet"></i>
+        <div class="dash-card snd-click" id="tool-ewallet" data-action="window.open('https://ewallet.uppcl.org/login', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-ewallet')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-ewallet')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-wallet main-icon"></i>
             <h3>E-Wallet (UPPCL)</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://uppcl.vayamtech.com/login.php', '_blank')">
-            <i class="fa fa-bolt"></i>
+        <div class="dash-card snd-click" id="tool-uppcl" data-action="window.open('https://uppcl.vayamtech.com/login.php', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-uppcl')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-uppcl')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-bolt main-icon"></i>
             <h3>UPPCL Vayamtech</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://myaadhaar.uidai.gov.in/en_IN', '_blank')">
-            <i class="fa fa-id-card"></i>
+        <div class="dash-card snd-click" id="tool-aadhar" data-action="window.open('https://myaadhaar.uidai.gov.in/en_IN', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-aadhar')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-aadhar')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-id-card main-icon"></i>
             <h3>Aadhar Services</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://onlineservices.proteantech.in/paam/endUserRegisterContact.html', '_blank')">
-            <i class="fa fa-file-invoice"></i>
+        <div class="dash-card snd-click" id="tool-pan" data-action="window.open('https://onlineservices.proteantech.in/paam/endUserRegisterContact.html', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-pan')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-pan')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-file-invoice main-icon"></i>
             <h3>PAN Card Center</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://v2022.paypointindia.co.in/Account/Login', '_blank')">
-            <i class="fa fa-fingerprint"></i>
+        <div class="dash-card snd-click" id="tool-aeps" data-action="window.open('https://v2022.paypointindia.co.in/Account/Login', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-aeps')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-aeps')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-fingerprint main-icon"></i>
             <h3>AEPS PAYPOINT</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://edistrict.up.gov.in/edistrict/login/login.aspx?Xpr$lgnp=FzGSwZphiQdLTgmeLVWK8PnkHNxBD6qT', '_blank')">
-            <i class="fa fa-file-signature"></i>
+        <div class="dash-card snd-click" id="tool-edistrict" data-action="window.open('https://edistrict.up.gov.in/edistrict/login/login.aspx?Xpr$lgnp=FzGSwZphiQdLTgmeLVWK8PnkHNxBD6qT', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-edistrict')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-edistrict')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-file-signature main-icon"></i>
             <h3>E-District (UP)</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://voters.eci.gov.in/login', '_blank')">
-            <i class="fa fa-address-card"></i>
+        <div class="dash-card snd-click" id="tool-voter" data-action="window.open('https://voters.eci.gov.in/login', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-voter')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-voter')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-address-card main-icon"></i>
             <h3>Voter ID</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://www.passportindia.gov.in/psp', '_blank')">
-            <i class="fa fa-passport"></i>
+        <div class="dash-card snd-click" id="tool-passport" data-action="window.open('https://www.passportindia.gov.in/psp', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-passport')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-passport')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-passport main-icon"></i>
             <h3>Passport Services</h3>
         </div>
 
-        <div class="dash-card" onclick="window.open('https://www.irctc.co.in/nget/train-search', '_blank')">
-            <i class="fa fa-train"></i>
+        <div class="dash-card snd-click" id="tool-irctc" data-action="window.open('https://www.irctc.co.in/nget/train-search', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-irctc')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-irctc')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-train main-icon"></i>
             <h3>रेलवे टिकट (IRCTC)</h3>
         </div>
 
-        <div class="dash-card" onclick="openResumeMaker()">
-            <i class="fa fa-file-user"></i>
+        <div class="dash-card snd-click" id="tool-resume" data-action="openResumeMaker()">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-resume')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-resume')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-file-user main-icon"></i>
             <h3>Resume Maker</h3>
         </div>
 
-        <div class="dash-card" onclick="location.reload()">
-            <i class="fa fa-sync"></i>
+        <div class="dash-card snd-click" id="tool-refresh" data-action="location.reload()">
+            <div class="card-controls"><button onclick="toggleCardSize(event, 'tool-refresh')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, 'tool-refresh')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa fa-sync main-icon"></i>
             <h3>Refresh Dashboard</h3>
+        </div>
+    </div>
+</div>
+
+<div id="profileModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg overflow-hidden relative transition-all">
+        <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+            <h2 class="font-bold text-lg"><i class="fa fa-id-badge"></i> User Profile ID</h2>
+            <button onclick="closeProfileModal()" class="hover:text-red-300 text-2xl font-bold leading-none snd-click">&times;</button>
+        </div>
+        
+        <div id="profileViewMode" class="p-0">
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-700 p-6 flex items-center gap-6 border-b border-slate-200 dark:border-slate-600">
+                <div class="relative shrink-0">
+                    <img id="viewProfilePhoto" src="" class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover bg-white">
+                </div>
+                <div>
+                    <h2 id="viewProfileName" class="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight"></h2>
+                    <p class="text-blue-600 dark:text-blue-400 font-bold text-sm tracking-widest mt-1">AUTHORIZED OPERATOR</p>
+                </div>
+            </div>
+            <div class="p-6 grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">Mobile Number</span><span id="viewProfileMobile" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">Email Address</span><span id="viewProfileEmail" class="font-bold text-slate-700 dark:text-slate-200 truncate block"></span></div>
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">Date of Birth</span><span id="viewProfileDob" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">Gender</span><span id="viewProfileGender" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+                <div class="col-span-2"><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">Address</span><span id="viewProfileAddress" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">City</span><span id="viewProfileCity" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+                <div><span class="block text-slate-400 text-xs font-bold uppercase mb-0.5">State & PIN</span><span id="viewProfileStatePin" class="font-bold text-slate-700 dark:text-slate-200"></span></div>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end border-t border-slate-200 dark:border-slate-700">
+                <button onclick="toggleProfileEdit(true)" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-blue-700 transition snd-click flex items-center gap-2"><i class="fa fa-edit"></i> Edit Profile</button>
+            </div>
+        </div>
+
+        <div id="profileEditMode" class="p-6 hidden">
+            <div class="flex flex-col items-center mb-6">
+                <img id="editProfilePhotoPreview" src="" class="w-24 h-24 rounded-full border-4 border-slate-200 dark:border-slate-600 shadow-sm object-cover mb-3 bg-white">
+                <label class="bg-slate-800 text-white text-xs px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-700 transition snd-click">
+                    <i class="fa fa-camera mr-1"></i> Upload Photo
+                    <input type="file" accept="image/*" class="hidden" onchange="processProfilePhoto(event)">
+                </label>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="col-span-2"><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Full Name</label><input type="text" id="editProfileName" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white uppercase snd-type"></div>
+                <div><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Mobile</label><input type="text" id="editProfileMobile" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white snd-type"></div>
+                <div><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Email</label><input type="email" id="editProfileEmail" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white uppercase snd-type"></div>
+                <div><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">DOB</label><input type="date" id="editProfileDob" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white snd-click"></div>
+                <div>
+                    <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Gender</label>
+                    <select id="editProfileGender" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white snd-click">
+                        <option value="MALE">MALE</option><option value="FEMALE">FEMALE</option><option value="OTHER">OTHER</option>
+                    </select>
+                </div>
+                <div class="col-span-2"><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Address</label><input type="text" id="editProfileAddress" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white uppercase snd-type"></div>
+                <div class="col-span-2 sm:col-span-1"><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">City</label><input type="text" id="editProfileCity" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white uppercase snd-type"></div>
+                <div class="grid grid-cols-2 gap-2 col-span-2 sm:col-span-1">
+                    <div><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">State</label><input type="text" id="editProfileState" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white uppercase snd-type"></div>
+                    <div><label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">PIN</label><input type="text" id="editProfilePincode" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800 dark:text-white snd-type"></div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="toggleProfileEdit(false)" class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white px-5 py-2.5 rounded-xl font-bold transition hover:bg-slate-300 dark:hover:bg-slate-600 snd-click">Cancel</button>
+                <button onclick="saveProfile()" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-emerald-700 transition snd-click flex items-center gap-2"><i class="fa fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal">
+    <div class="settings-content">
+        <div class="settings-header">
+            <h2 class="text-xl font-bold"><i class="fa fa-cogs text-blue-500"></i> System Settings</h2>
+            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-red-500 text-2xl font-bold snd-click">&times;</button>
+        </div>
+        
+        <div class="settings-tabs">
+            <div class="tab-btn active snd-click" onclick="switchSettingsTab('layout')"><i class="fa fa-th-large"></i> Dashboard Customize</div>
+            <div class="tab-btn snd-click" onclick="switchSettingsTab('sound')"><i class="fa fa-volume-up"></i> Sounds</div>
+            <div class="tab-btn snd-click" onclick="switchSettingsTab('appearance')"><i class="fa fa-paint-brush"></i> Theme & Font</div>
+        </div>
+
+        <div id="tab-layout" class="tab-content active">
+            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-4 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-blue-400">Dashboard Edit Mode</h3>
+                    <p class="text-sm text-slate-400">Drag to reorder or resize cards easily.</p>
+                </div>
+                <div class="sys-toggle snd-click" id="toggleEditModeBtn" onclick="toggleDashboardEditMode()"></div>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="font-bold mb-2">1. Manage Tools Visibility & Position</h3>
+                <div id="hiddenToolsList" class="flex flex-col gap-1 text-sm text-slate-400 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
+                    </div>
+            </div>
+
+            <hr class="border-slate-700 my-4">
+
+            <div>
+                <h3 class="font-bold mb-2">2. ➕ Add Custom Button (100+ Icons Dropdown)</h3>
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <input type="text" id="newBtnTitle" placeholder="Button Title" class="settings-input w-full max-w-none snd-type">
+                    <select id="newBtnIcon" class="settings-select w-full max-w-none snd-click scrollbar-thin font-medium cursor-pointer">
+                        <optgroup label="Education & Study (शिक्षा व पढ़ाई)">
+                            <option value="fa-solid fa-school">school</option>
+                            <option value="fa-solid fa-book">book</option>
+                            <option value="fa-solid fa-book-open">book open</option>
+                            <option value="fa-solid fa-book-open-reader">book reader</option>
+                            <option value="fa-solid fa-graduation-cap">graduation cap</option>
+                            <option value="fa-solid fa-user-graduate">user graduate</option>
+                            <option value="fa-solid fa-chalkboard">chalkboard</option>
+                            <option value="fa-solid fa-chalkboard-user">chalkboard user</option>
+                            <option value="fa-solid fa-pencil">pencil</option>
+                            <option value="fa-solid fa-pen">pen</option>
+                            <option value="fa-solid fa-pen-nib">pen nib</option>
+                            <option value="fa-solid fa-pen-to-square">pen square</option>
+                            <option value="fa-solid fa-microscope">microscope</option>
+                            <option value="fa-solid fa-laptop-code">laptop code</option>
+                            <option value="fa-solid fa-award">award</option>
+                            <option value="fa-solid fa-certificate">certificate</option>
+                            <option value="fa-solid fa-highlighter">highlighter</option>
+                            <option value="fa-solid fa-file-pen">file pen</option>
+                            <option value="fa-solid fa-ruler">ruler</option>
+                            <option value="fa-solid fa-calculator">calculator</option>
+                        </optgroup>
+                        <optgroup label="Govt & Documents (सरकारी व दस्तावेज़)">
+                            <option value="fa-solid fa-id-card">id card</option>
+                            <option value="fa-solid fa-id-card-clip">id card clip</option>
+                            <option value="fa-solid fa-address-card">address card</option>
+                            <option value="fa-solid fa-passport">passport</option>
+                            <option value="fa-solid fa-stamp">stamp</option>
+                            <option value="fa-solid fa-file">file</option>
+                            <option value="fa-solid fa-file-pdf">file pdf</option>
+                            <option value="fa-solid fa-file-word">file word</option>
+                            <option value="fa-solid fa-file-lines">file lines</option>
+                            <option value="fa-solid fa-file-signature">file signature</option>
+                            <option value="fa-solid fa-file-invoice">file invoice</option>
+                            <option value="fa-solid fa-file-shield">file shield</option>
+                            <option value="fa-solid fa-file-contract">file contract</option>
+                            <option value="fa-solid fa-clipboard">clipboard</option>
+                            <option value="fa-solid fa-clipboard-check">clipboard check</option>
+                            <option value="fa-solid fa-clipboard-list">clipboard list</option>
+                            <option value="fa-solid fa-scale-balanced">scale balanced</option>
+                            <option value="fa-solid fa-gavel">gavel</option>
+                            <option value="fa-solid fa-landmark-flag">landmark flag</option>
+                        </optgroup>
+                        <optgroup label="Banking, Finance & Pay (बैंकिंग व मुद्रा)">
+                            <option value="fa-solid fa-building-columns">building columns</option>
+                            <option value="fa-solid fa-landmark">landmark</option>
+                            <option value="fa-solid fa-bank">bank</option>
+                            <option value="fa-solid fa-indian-rupee-sign">indian rupee</option>
+                            <option value="fa-solid fa-money-bill">money bill</option>
+                            <option value="fa-solid fa-money-bill-wave">money bill wave</option>
+                            <option value="fa-solid fa-money-bill-1">money bill 1</option>
+                            <option value="fa-solid fa-money-bill-transfer">money transfer</option>
+                            <option value="fa-solid fa-money-check-dollar">money check</option>
+                            <option value="fa-solid fa-wallet">wallet</option>
+                            <option value="fa-solid fa-credit-card">credit card</option>
+                            <option value="fa-solid fa-piggy-bank">piggy bank</option>
+                            <option value="fa-solid fa-vault">vault</option>
+                            <option value="fa-solid fa-sack-dollar">sack dollar</option>
+                            <option value="fa-solid fa-coins">coins</option>
+                            <option value="fa-solid fa-cash-register">cash register</option>
+                            <option value="fa-solid fa-receipt">receipt</option>
+                            <option value="fa-solid fa-file-invoice-dollar">invoice dollar</option>
+                        </optgroup>
+                        <optgroup label="CSC, Cyber & Online (जन सेवा व साइबर)">
+                            <option value="fa-solid fa-desktop">desktop</option>
+                            <option value="fa-solid fa-laptop">laptop</option>
+                            <option value="fa-solid fa-computer">computer</option>
+                            <option value="fa-solid fa-print">print</option>
+                            <option value="fa-solid fa-fax">fax</option>
+                            <option value="fa-solid fa-barcode">barcode / scanner</option>
+                            <option value="fa-solid fa-qrcode">qrcode</option>
+                            <option value="fa-solid fa-sim-card">sim card</option>
+                            <option value="fa-solid fa-mobile">mobile</option>
+                            <option value="fa-solid fa-mobile-screen">mobile screen</option>
+                            <option value="fa-solid fa-phone">phone</option>
+                            <option value="fa-solid fa-phone-volume">phone volume</option>
+                            <option value="fa-solid fa-headset">headset</option>
+                            <option value="fa-solid fa-headphones">headphones</option>
+                            <option value="fa-solid fa-satellite-dish">satellite dish</option>
+                            <option value="fa-solid fa-tower-broadcast">broadcast tower</option>
+                            <option value="fa-solid fa-wifi">wifi</option>
+                            <option value="fa-solid fa-globe">globe</option>
+                            <option value="fa-solid fa-network-wired">network wired</option>
+                            <option value="fa-solid fa-cloud">cloud</option>
+                            <option value="fa-solid fa-server">server</option>
+                            <option value="fa-solid fa-hard-drive">hard drive</option>
+                            <option value="fa-solid fa-memory">memory</option>
+                            <option value="fa-solid fa-usb">usb</option>
+                        </optgroup>
+                        <optgroup label="Agriculture & Rural (किसान व ग्रामीण)">
+                            <option value="fa-solid fa-wheat-awn">wheat awn (kisan)</option>
+                            <option value="fa-solid fa-tractor">tractor</option>
+                            <option value="fa-solid fa-seedling">seedling</option>
+                            <option value="fa-solid fa-tree">tree</option>
+                            <option value="fa-solid fa-trowel">trowel</option>
+                            <option value="fa-solid fa-fan">fan</option>
+                            <option value="fa-solid fa-sun">sun</option>
+                            <option value="fa-solid fa-wind">wind</option>
+                            <option value="fa-solid fa-water">water</option>
+                            <option value="fa-solid fa-droplet">droplet</option>
+                            <option value="fa-solid fa-leaf">leaf</option>
+                        </optgroup>
+                        <optgroup label="Travel & Transport (यात्रा व परिवहन)">
+                            <option value="fa-solid fa-train">train</option>
+                            <option value="fa-solid fa-train-subway">subway</option>
+                            <option value="fa-solid fa-bus">bus</option>
+                            <option value="fa-solid fa-car">car</option>
+                            <option value="fa-solid fa-taxi">taxi</option>
+                            <option value="fa-solid fa-plane">plane</option>
+                            <option value="fa-solid fa-plane-departure">plane takeoff</option>
+                            <option value="fa-solid fa-motorcycle">motorcycle</option>
+                            <option value="fa-solid fa-truck">truck</option>
+                            <option value="fa-solid fa-ship">ship</option>
+                            <option value="fa-solid fa-ticket">ticket</option>
+                            <option value="fa-solid fa-gas-pump">gas pump</option>
+                            <option value="fa-solid fa-road">road</option>
+                            <option value="fa-solid fa-location-dot">location dot</option>
+                        </optgroup>
+                        <optgroup label="Healthcare & Medical (स्वास्थ्य व बीमा)">
+                            <option value="fa-solid fa-hospital">hospital</option>
+                            <option value="fa-solid fa-stethoscope">stethoscope</option>
+                            <option value="fa-solid fa-pills">pills</option>
+                            <option value="fa-solid fa-tablets">tablets</option>
+                            <option value="fa-solid fa-prescription-bottle-medical">prescription</option>
+                            <option value="fa-solid fa-heart-pulse">heart pulse</option>
+                            <option value="fa-solid fa-user-doctor">doctor</option>
+                            <option value="fa-solid fa-user-nurse">nurse</option>
+                            <option value="fa-solid fa-wheelchair">wheelchair</option>
+                            <option value="fa-solid fa-kit-medical">medical kit</option>
+                            <option value="fa-solid fa-syringe">syringe</option>
+                            <option value="fa-solid fa-eye">eye</option>
+                        </optgroup>
+                        <optgroup label="Business, Job & Office (व्यापार व नौकरी)">
+                            <option value="fa-solid fa-briefcase">briefcase</option>
+                            <option value="fa-solid fa-building">building</option>
+                            <option value="fa-solid fa-handshake">handshake</option>
+                            <option value="fa-solid fa-user-tie">user tie</option>
+                            <option value="fa-solid fa-business-time">business time</option>
+                            <option value="fa-solid fa-table-columns">table columns</option>
+                            <option value="fa-solid fa-folder font-medium">folder</option>
+                            <option value="fa-solid fa-paperclip">paperclip</option>
+                            <option value="fa-solid fa-calendar-days">calendar</option>
+                        </optgroup>
+                        <optgroup label="Photo Studio & Media (फोटो व मीडिया)">
+                            <option value="fa-solid fa-camera">camera</option>
+                            <option value="fa-solid fa-camera-retro">camera retro</option>
+                            <option value="fa-solid fa-image">image</option>
+                            <option value="fa-solid fa-images">images</option>
+                            <option value="fa-solid fa-photo-film">photo film</option>
+                            <option value="fa-solid fa-video">video</option>
+                            <option value="fa-solid fa-film">film</option>
+                            <option value="fa-solid fa-clapperboard">clapperboard</option>
+                            <option value="fa-solid fa-crop font-medium">crop</option>
+                            <option value="fa-solid fa-wand-magic-sparkles">wand magic</option>
+                            <option value="fa-solid fa-palette">palette</option>
+                        </optgroup>
+                        <optgroup label="Social Media (सोशल मीडिया)">
+                            <option value="fa-brands fa-whatsapp">whatsapp</option>
+                            <option value="fa-brands fa-facebook">facebook</option>
+                            <option value="fa-brands fa-instagram">instagram</option>
+                            <option value="fa-brands fa-youtube">youtube</option>
+                            <option value="fa-brands fa-telegram">telegram</option>
+                            <option value="fa-brands fa-x-twitter">x-twitter</option>
+                            <option value="fa-brands fa-linkedin">linkedin</option>
+                            <option value="fa-brands fa-google">google</option>
+                            <option value="fa-brands fa-github">github</option>
+                        </optgroup>
+                        <optgroup label="Common & UI (सामान्य व उपयोगी)">
+                            <option value="fa-solid fa-star" selected>star (Default)</option>
+                            <option value="fa-solid fa-home">home</option>
+                            <option value="fa-solid fa-user">user</option>
+                            <option value="fa-solid fa-user-plus font-medium">user plus</option>
+                            <option value="fa-solid fa-users font-medium">users</option>
+                            <option value="fa-solid fa-cog">cog</option>
+                            <option value="fa-solid fa-gear font-medium">gear</option>
+                            <option value="fa-solid fa-heart font-medium">heart</option>
+                            <option value="fa-solid fa-bell font-medium">bell</option>
+                            <option value="fa-solid fa-envelope font-medium">envelope</option>
+                            <option value="fa-solid fa-search font-medium">search</option>
+                            <option value="fa-solid fa-check font-medium">check</option>
+                            <option value="fa-solid fa-plus font-medium">plus</option>
+                            <option value="fa-solid fa-trash font-medium">trash</option>
+                            <option value="fa-solid fa-lock font-medium">lock</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <input type="text" id="newBtnLink" placeholder="URL Link (https://...)" class="settings-input w-full max-w-none mb-3 snd-type">
+                <button onclick="addNewCustomCard()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg snd-click">Add Button to Dashboard</button>
+            </div>
+        </div>
+
+        <div id="tab-sound" class="tab-content">
+            <div class="setting-row">
+                <div>
+                    <h3 class="font-bold">Master Sound Engine</h3>
+                    <p class="text-sm text-slate-400">Enable or disable all system sounds.</p>
+                </div>
+                <div class="sys-toggle snd-click active" id="masterSoundToggle" onclick="toggleMasterSound()"></div>
+            </div>
+            
+            <div class="setting-row">
+                <h3 class="font-bold">Volume Level</h3>
+                <input type="range" id="soundVolume" min="0.1" max="1" step="0.1" value="0.5" class="w-1/2 cursor-pointer" onchange="updateVolume(this.value)">
+            </div>
+
+            <p class="text-xs text-slate-500 mt-4 italic">* Dynamically plays click, typing, success, and error sounds across the interface without needing audio files.</p>
+        </div>
+
+        <div id="tab-appearance" class="tab-content">
+            <div class="setting-row">
+                <h3 class="font-bold">Theme Primary Color</h3>
+                <input type="color" id="primaryColorPicker" value="#2563eb" onchange="updatePrimaryColor(this.value)" class="cursor-pointer h-10 w-20 bg-transparent border-0 rounded snd-click">
+            </div>
+            
+            <div class="setting-row">
+                <h3 class="font-bold">Dashboard Font</h3>
+                <select id="fontSelect" class="settings-select snd-click" onchange="updateFont(this.value)">
+                    <option value="'Inter', sans-serif">Inter (Default)</option>
+                    <option value="'Poppins', sans-serif">Poppins</option>
+                    <option value="'Courier New', monospace">Courier Monospace</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                </select>
+            </div>
+
+            <hr class="border-slate-700 my-6">
+
+            <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-center">
+                <h3 class="font-bold text-red-400 mb-2">By Default Mode (Restore)</h3>
+                <p class="text-sm text-slate-400 mb-4">Jaise pehle shuruat mein tha waisa ho jayega (All changes will be cleared).</p>
+                <button onclick="factoryReset()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition snd-click">🔄 By Default Mode</button>
+            </div>
         </div>
     </div>
 </div>
@@ -329,12 +724,12 @@
     <h2 class="text-white light-theme:text-slate-800" style="font-size: 2rem;">Editor Loading...</h2>
     <p style="color:#64748b;">This feature will be integrated soon.</p>
     <br>
-    <button onclick="location.reload()" style="padding:12px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor:pointer; font-weight: bold;">Back to Dashboard</button>
+    <button onclick="location.reload()" class="snd-click" style="padding:12px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor:pointer; font-weight: bold;">Back to Dashboard</button>
 </div>
 
 <div id="resume-maker-content">
     <div class="mb-6 max-w-4xl mx-auto pl-2">
-        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-md">
+        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-md snd-click">
             ⬅ Back to Dashboard
         </button>
     </div>
@@ -351,7 +746,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="form-label">Document Heading <span class="required-star">*</span></label>
-                    <select id="inputHeading" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer font-medium">
+                    <select id="inputHeading" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer font-medium snd-click">
                         <option value="RESUME">RESUME</option>
                         <option value="CURRICULUM VITAE">CURRICULUM VITAE</option>
                         <option value="BIO-DATA">BIO-DATA</option>
@@ -360,10 +755,10 @@
                 <div>
                     <label class="form-label">Layout Format <span class="required-star">*</span></label>
                     <div class="grid grid-cols-2 gap-3">
-                        <button type="button" id="btnWithPhoto" onclick="setPhotoOption('withPhoto')" class="flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md">
+                        <button type="button" id="btnWithPhoto" onclick="setPhotoOption('withPhoto')" class="snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md">
                             📷 With Photo
                         </button>
-                        <button type="button" id="btnWithoutPhoto" onclick="setPhotoOption('withoutPhoto')" class="flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50">
+                        <button type="button" id="btnWithoutPhoto" onclick="setPhotoOption('withoutPhoto')" class="snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50">
                             📄 No Photo
                         </button>
                     </div>
@@ -374,43 +769,43 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="form-label">Full Name <span class="required-star">*</span></label>
-                    <input type="text" id="inputName" oninput="updateLivePreview()" placeholder="Enter full name here" class="form-input-field">
+                    <input type="text" id="inputName" oninput="updateLivePreview()" placeholder="Enter full name here" class="form-input-field snd-type">
                 </div>
                 <div>
                     <label class="form-label">House No. / Gali / Mark <span class="required-star">*</span></label>
-                    <input type="text" id="inputHouse" oninput="updateLivePreview()" placeholder="Enter house no. or address landmark mark" class="form-input-field">
+                    <input type="text" id="inputHouse" oninput="updateLivePreview()" placeholder="Enter house no. or address landmark mark" class="form-input-field snd-type">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="form-label">Landmark / Near by Location</label>
-                    <input type="text" id="inputLandmark" oninput="updateLivePreview()" placeholder="Enter nearby prominent landmark" class="form-input-field">
+                    <input type="text" id="inputLandmark" oninput="updateLivePreview()" placeholder="Enter nearby prominent landmark" class="form-input-field snd-type">
                 </div>
                 <div>
                     <label class="form-label">Area / Locality / Village <span class="required-star">*</span></label>
-                    <input type="text" id="inputArea" oninput="updateLivePreview()" placeholder="Enter village or locality area name" class="form-input-field">
+                    <input type="text" id="inputArea" oninput="updateLivePreview()" placeholder="Enter village or locality area name" class="form-input-field snd-type">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                 <div>
                     <label class="form-label">State & City <span class="required-star">*</span></label>
-                    <input type="text" id="inputCity" oninput="updateLivePreview()" placeholder="e.g. Delhi, New Delhi" class="form-input-field">
+                    <input type="text" id="inputCity" oninput="updateLivePreview()" placeholder="e.g. Delhi, New Delhi" class="form-input-field snd-type">
                 </div>
                 <div>
                     <label class="form-label">Pincode <span class="required-star">*</span></label>
-                    <input type="text" id="inputPincode" oninput="updateLivePreview()" placeholder="Enter 6-digit pin code" class="form-input-field">
+                    <input type="text" id="inputPincode" oninput="updateLivePreview()" placeholder="Enter 6-digit pin code" class="form-input-field snd-type">
                 </div>
                 <div>
                     <label class="form-label">Mobile Number <span class="required-star">*</span></label>
-                    <input type="text" id="inputPhone" oninput="updateLivePreview()" placeholder="Enter mobile number" class="form-input-field">
+                    <input type="text" id="inputPhone" oninput="updateLivePreview()" placeholder="Enter mobile number" class="form-input-field snd-type">
                 </div>
             </div>
 
             <div>
                 <label class="form-label">Email Address</label>
-                <input type="email" id="inputEmail" oninput="updateLivePreview()" placeholder="Enter email address" class="form-input-field">
+                <input type="email" id="inputEmail" oninput="updateLivePreview()" placeholder="Enter email address" class="form-input-field snd-type">
             </div>
 
             <div id="photoUploadWrapper" class="border-t border-slate-100 pt-6">
@@ -422,7 +817,7 @@
                         </svg>
                     </div>
                     <div class="space-y-2 text-center sm:text-left">
-                        <label class="inline-block bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold py-2.5 px-5 rounded-xl cursor-pointer transition shadow-sm">
+                        <label class="inline-block bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold py-2.5 px-5 rounded-xl cursor-pointer transition shadow-sm snd-click">
                             Choose Passport Photo
                             <input type="file" accept="image/*" onchange="processImageStream(event)" class="hidden">
                         </label>
@@ -433,18 +828,18 @@
 
             <div class="border-t border-slate-100 pt-6">
                 <label class="form-label">Career Objective</label>
-                <select id="selectObjective" onchange="applyObjectiveSnippet()" class="form-input-field appearance-none cursor-pointer mb-3 font-medium text-slate-600">
+                <select id="selectObjective" onchange="applyObjectiveSnippet()" class="form-input-field appearance-none cursor-pointer mb-3 font-medium text-slate-600 snd-click">
                     <option value="">-- Choose from Ready-made Professional Snippets --</option>
                     <option value="To make contribution in the organization with best of my ability and also to Develop new skills during the interaction to achieve new heights.">Professional Growth Statement</option>
                     <option value="To secure a challenging position in a reputable organization to utilize my training and skills while making a significant contribution to the success of the company.">Entry-Level Career Target</option>
                 </select>
-                <textarea id="textObjective" oninput="updateLivePreview()" rows="3" placeholder="Write or edit your custom career goal statement here..." class="form-input-field"></textarea>
+                <textarea id="textObjective" oninput="updateLivePreview()" rows="3" placeholder="Write or edit your custom career goal statement here..." class="form-input-field snd-type"></textarea>
             </div>
 
             <div class="border-t border-slate-100 pt-6 space-y-3">
                 <label class="form-label !mb-0">Academic Qualifications</label>
                 <div id="wrapperQualification" class="space-y-3"></div>
-                <button type="button" onclick="appendQualificationBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                <button type="button" onclick="appendQualificationBox()" class="snd-click text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
                     ➕ Add Qualification Row
                 </button>
             </div>
@@ -452,7 +847,7 @@
             <div class="border-t border-slate-100 pt-6 space-y-3">
                 <label class="form-label !mb-0">Other Skills / Qualifications</label>
                 <div id="wrapperOther" class="space-y-2"></div>
-                <button type="button" onclick="appendOtherBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                <button type="button" onclick="appendOtherBox()" class="snd-click text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
                     ➕ Add Skills Point
                 </button>
             </div>
@@ -460,7 +855,7 @@
             <div class="border-t border-slate-100 pt-6 space-y-3">
                 <label class="form-label !mb-0">Work Experience</label>
                 <div id="wrapperExperience" class="space-y-2"></div>
-                <button type="button" onclick="appendExperienceBox()" class="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                <button type="button" onclick="appendExperienceBox()" class="snd-click text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 py-2 px-4 rounded-xl cursor-pointer transition flex items-center gap-1.5">
                     ➕ Add Experience Point
                 </button>
             </div>
@@ -470,7 +865,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                         <label class="form-label text-xs !text-slate-500">Gender <span class="required-star">*</span></label>
-                        <select id="inputGender" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer">
+                        <select id="inputGender" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer snd-click">
                             <option value="">-- Select Gender --</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -479,29 +874,29 @@
                     </div>
                     <div>
                         <label class="form-label text-xs !text-slate-500">Father's Name <span class="required-star">*</span></label>
-                        <input type="text" id="inputFather" oninput="updateLivePreview()" placeholder="Father's Full Name" class="form-input-field">
+                        <input type="text" id="inputFather" oninput="updateLivePreview()" placeholder="Father's Full Name" class="form-input-field snd-type">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                         <label class="form-label text-xs !text-slate-500">Date of Birth <span class="required-star">*</span></label>
-                        <input type="date" id="inputDob" onchange="updateLivePreview()" class="form-input-field">
+                        <input type="date" id="inputDob" onchange="updateLivePreview()" class="form-input-field snd-click">
                     </div>
                     <div>
                         <label class="form-label text-xs !text-slate-500">Languages Known <span class="required-star">*</span></label>
-                        <input type="text" id="inputLang" oninput="updateLivePreview()" placeholder="e.g. Hindi & English" class="form-input-field">
+                        <input type="text" id="inputLang" oninput="updateLivePreview()" placeholder="e.g. Hindi & English" class="form-input-field snd-type">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                         <label class="form-label text-xs !text-slate-500">Nationality <span class="required-star">*</span></label>
-                        <input type="text" id="inputNationality" oninput="updateLivePreview()" value="Indian" class="form-input-field">
+                        <input type="text" id="inputNationality" oninput="updateLivePreview()" value="Indian" class="form-input-field snd-type">
                     </div>
                     <div>
                         <label class="form-label text-xs !text-slate-500">Marital Status <span class="required-star">*</span></label>
-                        <select id="inputMarital" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer">
+                        <select id="inputMarital" onchange="updateLivePreview()" class="form-input-field appearance-none cursor-pointer snd-click">
                             <option value="">-- Select Status --</option>
                             <option value="Unmarried">Unmarried</option>
                             <option value="Married">Married</option>
@@ -512,17 +907,17 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                         <label class="form-label text-xs !text-slate-500">Resume Date <span class="text-xs text-slate-500 font-normal">(Current Date by Default)</span></label>
-                        <input type="date" id="inputResumeDate" onchange="updateLivePreview()" class="form-input-field">
+                        <input type="date" id="inputResumeDate" onchange="updateLivePreview()" class="form-input-field snd-click">
                     </div>
                     <div></div>
                 </div>
             </div>
 
             <div class="border-t border-slate-200 pt-6 flex flex-col sm:flex-row gap-4">
-                <button type="button" onclick="generateHDPrint()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-blue-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
+                <button type="button" onclick="generateHDPrint()" class="snd-click flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-blue-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
                     🖨️ Create & Print Resume (HD)
                 </button>
-                <button type="button" onclick="exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
+                <button type="button" onclick="exportPDF()" class="snd-click bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 cursor-pointer transition text-center text-lg flex items-center justify-center gap-2">
                     📥 Download PDF File
                 </button>
             </div>
@@ -652,9 +1047,14 @@
     </div>
 </div>
 
-<button id="cash-counter-btn" onclick="toggleCashCounter()" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white font-bold rounded-full p-4 sm:px-6 sm:py-4 flex items-center gap-3 shadow-2xl hover:scale-110 transition duration-300">
-    <i class="fa fa-calculator text-xl sm:text-2xl"></i>
+<button id="cash-counter-btn" onclick="toggleCashCounter()" class="snd-click fixed bottom-24 right-6 z-50 bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white font-bold rounded-full p-4 sm:px-6 sm:py-4 flex items-center gap-3 shadow-2xl hover:scale-110 transition duration-300 btn-glow">
+    <i class="fa fa-wallet text-xl sm:text-2xl"></i>
     <span class="hidden sm:inline text-sm tracking-wide uppercase">Cash Counter</span>
+</button>
+
+<button id="standard-calc-btn" onclick="toggleStandardCalc()" class="snd-click fixed bottom-6 right-6 z-50 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-full p-4 sm:px-6 sm:py-4 flex items-center gap-3 shadow-2xl hover:scale-110 transition duration-300 btn-glow">
+    <i class="fa fa-calculator text-xl sm:text-2xl"></i>
+    <span class="hidden sm:inline text-sm tracking-wide uppercase">Calculator</span>
 </button>
 
 <div id="cash-counter-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -664,14 +1064,14 @@
             <h2 class="text-xl font-black text-white tracking-wide uppercase flex items-center gap-2">
                 <i class="fa fa-wallet text-blue-500"></i> Cash Calculator
             </h2>
-            <button onclick="toggleCashCounter()" class="text-slate-400 hover:text-white font-bold text-xl px-2 cursor-pointer">✕</button>
+            <button onclick="toggleCashCounter()" class="snd-click text-slate-400 hover:text-white font-bold text-xl px-2 cursor-pointer">✕</button>
         </div>
 
         <div class="overflow-y-auto pr-1 space-y-3 flex-1">
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 2000</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note2000" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note2000" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res2000">₹0</div>
             </div>
@@ -679,7 +1079,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 500</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note500" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note500" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res500">₹0</div>
             </div>
@@ -687,7 +1087,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 200</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note200" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note200" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res200">₹0</div>
             </div>
@@ -695,7 +1095,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 100</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note100" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note100" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res100">₹0</div>
             </div>
@@ -703,7 +1103,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 50</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note50" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note50" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res50">₹0</div>
             </div>
@@ -711,7 +1111,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 20</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note20" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note20" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res20">₹0</div>
             </div>
@@ -719,7 +1119,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 10</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note10" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note10" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res10">₹0</div>
             </div>
@@ -727,7 +1127,7 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 5</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note5" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note5" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res5">₹0</div>
             </div>
@@ -735,14 +1135,14 @@
             <div class="grid grid-cols-12 gap-3 items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
                 <div class="col-span-3 font-bold text-right text-slate-300">₹ 2 / 1</div>
                 <div class="col-span-1 text-center text-slate-500">✕</div>
-                <div class="col-span-4"><input type="number" min="0" id="note1" oninput="calculateTotalCash()" placeholder="0" class="w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
+                <div class="col-span-4"><input type="number" min="0" id="note1" oninput="calculateTotalCash()" placeholder="0" class="snd-type w-full text-center bg-slate-950 border border-slate-700 text-white font-bold p-1.5 rounded-lg focus:outline-none focus:border-blue-500"></div>
                 <div class="col-span-1 text-center text-slate-500">=</div>
                 <div class="col-span-3 text-right font-black text-emerald-400 font-mono" id="res1">₹0</div>
             </div>
         </div>
 
         <div class="mt-4 border-t border-slate-800 pt-4 bg-slate-950 p-4 rounded-2xl flex justify-between items-center">
-            <button onclick="resetCashCounter()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wide transition">Reset All</button>
+            <button onclick="resetCashCounter()" class="snd-click bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wide transition">Reset All</button>
             <div class="text-right">
                 <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">Grand Total</span>
                 <span class="text-xl sm:text-2xl font-black text-yellow-400 font-mono" id="grandTotalCash">₹ 0</span>
@@ -751,9 +1151,534 @@
     </div>
 </div>
 
+<div id="standard-calc-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="calculator-chassis scale-90 sm:scale-100 transition-transform duration-300">
+        <button onclick="toggleStandardCalc()" class="snd-click absolute -top-4 -right-4 bg-rose-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg hover:bg-rose-700 cursor-pointer z-50 border-2 border-slate-900 transition-transform hover:scale-110 active:scale-95">✕</button>
+        
+        <div class="display-unit">
+            <div class="expression-output" id="output-view">0</div>
+            <div class="live-preview-feed" id="preview-view"></div>
+        </div>
+        
+        <div class="keypad-matrix" id="chassis-keypad">
+            <button class="calc-btn calc-btn-sys snd-click" data-action="clear">AC</button>
+            <button class="calc-btn calc-btn-sys snd-click" data-action="delete">DEL</button>
+            <button class="calc-btn calc-btn-op snd-click" data-type="input" data-val="*0.01">%</button>
+            <button class="calc-btn calc-btn-op snd-click" data-type="input" data-val="/">÷</button>
+
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="1">1</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="2">2</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="3">3</button>
+            <button class="calc-btn calc-btn-op snd-click" data-type="input" data-val="*">×</button>
+
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="4">4</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="5">5</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="6">6</button>
+            <button class="calc-btn calc-btn-op snd-click" data-type="input" data-val="-">-</button>
+
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="7">7</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="8">8</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="9">9</button>
+            <button class="calc-btn calc-btn-op snd-click" data-type="input" data-val="+">+</button>
+
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="00">00</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val="0">0</button>
+            <button class="calc-btn calc-btn-num snd-click" data-type="input" data-val=".">.</button>
+            <button class="calc-btn calc-btn-exec snd-click" data-action="evaluate">=</button>
+        </div>
+    </div>
+</div>
+
+<div id="analyticsModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl p-6 relative">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-3">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white"><i class="fa fa-chart-bar text-indigo-500"></i> Tool Usage Analytics</h2>
+            <button onclick="closeAnalyticsModal()" class="text-slate-500 hover:text-red-500 text-2xl font-bold snd-click leading-none">&times;</button>
+        </div>
+        <div class="flex gap-2 mb-6 justify-center">
+            <button onclick="renderChart(1)" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 snd-click font-bold shadow-sm transition">1 Day</button>
+            <button onclick="renderChart(7)" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 snd-click font-bold shadow-sm transition">7 Days</button>
+            <button onclick="renderChart(30)" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 snd-click font-bold shadow-sm transition">1 Month</button>
+        </div>
+        <div class="w-full h-[400px]">
+            <canvas id="analyticsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="lockerModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-5xl p-6 relative flex flex-col max-h-[90vh]">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-3">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white"><i class="fa fa-folder-open text-orange-500"></i> Document Locker</h2>
+            <button onclick="closeLockerModal()" class="text-slate-500 hover:text-red-500 text-2xl font-bold snd-click leading-none">&times;</button>
+        </div>
+        
+        <div class="mb-6 flex flex-wrap gap-4 items-center bg-slate-100 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+            <input type="text" id="docName" placeholder="Document Name (e.g. Aadhar Card)" class="flex-1 min-w-[200px] border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 dark:text-white snd-type">
+            <label class="bg-slate-700 text-white px-4 py-2.5 rounded-lg cursor-pointer hover:bg-slate-600 transition snd-click flex items-center gap-2 font-bold shadow-sm">
+                <i class="fa fa-upload"></i> Choose File
+                <input type="file" id="docFile" class="hidden" onchange="document.getElementById('docFileName').innerText = this.files[0]?.name || 'No file chosen'">
+            </label>
+            <span id="docFileName" class="text-sm text-slate-500 dark:text-slate-400 font-medium truncate max-w-[150px]">No file chosen</span>
+            <button onclick="uploadDocument()" class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:bg-emerald-700 transition snd-click flex items-center gap-2">
+                <i class="fa fa-save"></i> Save to Locker
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto pr-1 scrollbar-thin">
+            <div id="lockerGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Initialize default resume date on page load
+    /* =========================================================================================
+       USER PROFILE SYSTEM (ID CARD STYLE)
+       ========================================================================================= */
+    const defaultProfileData = {
+        name: 'GULAM MUSTAFA',
+        mobile: '9410534399',
+        email: 'GULAM@GMAIL.COM',
+        dob: '1111-01-01',
+        gender: 'MALE',
+        address: 'NULL',
+        city: 'MORADABAD',
+        state: 'UTTAR PRADESH',
+        pincode: '244601',
+        photo: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2QxZDVkYiI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCA... placeholder base64...'
+    };
+    
+    defaultProfileData.photo = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cbd5e1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+    let userProfile = JSON.parse(localStorage.getItem('kalam_user_profile')) || defaultProfileData;
+
+    function openProfileModal() {
+        document.getElementById('profileModal').style.display = 'flex';
+        renderProfileView();
+        sysPlayClick();
+    }
+
+    function closeProfileModal() {
+        document.getElementById('profileModal').style.display = 'none';
+        toggleProfileEdit(false);
+    }
+
+    function renderProfileView() {
+        document.getElementById('viewProfilePhoto').src = userProfile.photo;
+        document.getElementById('viewProfileName').innerText = userProfile.name;
+        document.getElementById('viewProfileMobile').innerText = userProfile.mobile;
+        document.getElementById('viewProfileEmail').innerText = userProfile.email;
+        
+        if(userProfile.dob) {
+            const d = new Date(userProfile.dob);
+            document.getElementById('viewProfileDob').innerText = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+        } else {
+            document.getElementById('viewProfileDob').innerText = '';
+        }
+        
+        document.getElementById('viewProfileGender').innerText = userProfile.gender;
+        document.getElementById('viewProfileAddress').innerText = userProfile.address;
+        document.getElementById('viewProfileCity').innerText = userProfile.city;
+        document.getElementById('viewProfileStatePin').innerText = `${userProfile.state} - ${userProfile.pincode}`;
+    }
+
+    function toggleProfileEdit(isEdit) {
+        if(isEdit) {
+            document.getElementById('profileViewMode').classList.add('hidden');
+            document.getElementById('profileEditMode').classList.remove('hidden');
+            
+            document.getElementById('editProfileName').value = userProfile.name;
+            document.getElementById('editProfileMobile').value = userProfile.mobile;
+            document.getElementById('editProfileEmail').value = userProfile.email;
+            document.getElementById('editProfileDob').value = userProfile.dob;
+            document.getElementById('editProfileGender').value = userProfile.gender;
+            document.getElementById('editProfileAddress').value = userProfile.address;
+            document.getElementById('editProfileCity').value = userProfile.city;
+            document.getElementById('editProfileState').value = userProfile.state;
+            document.getElementById('editProfilePincode').value = userProfile.pincode;
+            document.getElementById('editProfilePhotoPreview').src = userProfile.photo;
+        } else {
+            document.getElementById('profileViewMode').classList.remove('hidden');
+            document.getElementById('profileEditMode').classList.add('hidden');
+        }
+    }
+
+    function saveProfile() {
+        userProfile = {
+            name: document.getElementById('editProfileName').value.toUpperCase(),
+            mobile: document.getElementById('editProfileMobile').value,
+            email: document.getElementById('editProfileEmail').value.toUpperCase(),
+            dob: document.getElementById('editProfileDob').value,
+            gender: document.getElementById('editProfileGender').value.toUpperCase(),
+            address: document.getElementById('editProfileAddress').value.toUpperCase(),
+            city: document.getElementById('editProfileCity').value.toUpperCase(),
+            state: document.getElementById('editProfileState').value.toUpperCase(),
+            pincode: document.getElementById('editProfilePincode').value,
+            photo: document.getElementById('editProfilePhotoPreview').src
+        };
+        localStorage.setItem('kalam_user_profile', JSON.stringify(userProfile));
+        renderProfileView();
+        toggleProfileEdit(false);
+        sysPlaySuccess();
+    }
+
+    function processProfilePhoto(e) {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('editProfilePhotoPreview').src = evt.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    /* =========================================================================================
+       SYSTEM: AUDIO ENGINE, SETTINGS, DRAG & DROP, LOCALSTORAGE (LAYOUT SAVE)
+       ========================================================================================= */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    let kalamConfig = {
+        sounds: { enabled: true, volume: 0.5 },
+        appearance: { primaryColor: '#2563eb', font: "'Inter', sans-serif" },
+        layout: [] 
+    };
+    
+    let DEFAULT_GRID_HTML = ''; 
+
+    // SOUND ENGINE
+    function playTone(freq, type, duration, volMod = 1) {
+        if (!kalamConfig.sounds.enabled) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(kalamConfig.sounds.volume * volMod, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function sysPlayClick() { playTone(600, 'sine', 0.1, 0.5); }
+    function sysPlayType() { playTone(300, 'square', 0.05, 0.1); }
+    function sysPlaySuccess() {
+        playTone(400, 'sine', 0.1, 0.5);
+        setTimeout(() => playTone(600, 'sine', 0.2, 0.5), 100);
+    }
+    function sysPlayError() {
+        playTone(300, 'sawtooth', 0.2, 0.5);
+        setTimeout(() => playTone(200, 'sawtooth', 0.3, 0.5), 150);
+    }
+
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.snd-click, button, .dash-card, .tab-btn, .pos-btn')) sysPlayClick();
+    });
+    document.addEventListener('input', (e) => {
+        if (e.target.closest('.snd-type, input, textarea, select')) sysPlayType();
+    });
+
+    /* =========================================================================================
+       ANALYTICS TRACKING ENGINE
+       ========================================================================================= */
+    function logToolUsage(toolName) {
+        let data = JSON.parse(localStorage.getItem('kalam_analytics_data')) || [];
+        data.push({ name: toolName, time: Date.now() });
+        localStorage.setItem('kalam_analytics_data', JSON.stringify(data));
+    }
+
+    // LAYOUT & SETTINGS SYSTEM
+    function initSystem() {
+        const grid = document.getElementById('mainDashGrid');
+        DEFAULT_GRID_HTML = grid.innerHTML; 
+
+        const saved = localStorage.getItem('kalam_premium_config');
+        if (saved) {
+            kalamConfig = JSON.parse(saved);
+            applyConfig();
+        } else {
+            indexCurrentLayout();
+        }
+        setupDragAndDrop();
+        bindCardActions();
+    }
+
+    function indexCurrentLayout() {
+        const grid = document.getElementById('mainDashGrid');
+        kalamConfig.layout = [];
+        Array.from(grid.children).forEach((card) => {
+            if (!card.id) card.id = 'custom-card-' + Date.now() + Math.random();
+            kalamConfig.layout.push({
+                id: card.id,
+                visible: card.style.display !== 'none',
+                size: card.classList.contains('card-wide') ? 'wide' : 'normal',
+                html: card.outerHTML
+            });
+        });
+        saveConfig();
+        updateHiddenListUI(); 
+    }
+
+    function applyConfig() {
+        document.getElementById('masterSoundToggle').classList.toggle('active', kalamConfig.sounds.enabled);
+        document.getElementById('soundVolume').value = kalamConfig.sounds.volume;
+        
+        document.documentElement.style.setProperty('--primary', kalamConfig.appearance.primaryColor);
+        document.getElementById('primaryColorPicker').value = kalamConfig.appearance.primaryColor;
+        
+        document.documentElement.style.setProperty('--sys-font', kalamConfig.appearance.font);
+        document.getElementById('fontSelect').value = kalamConfig.appearance.font;
+
+        if (kalamConfig.layout && kalamConfig.layout.length > 0) {
+            const grid = document.getElementById('mainDashGrid');
+            grid.innerHTML = '';
+            kalamConfig.layout.forEach(cData => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cData.html;
+                const card = tempDiv.firstChild;
+                
+                if (card && card.nodeType === 1) { 
+                    if (cData.size === 'wide') card.classList.add('card-wide');
+                    else card.classList.remove('card-wide');
+                    
+                    if (!cData.visible) card.style.display = 'none';
+                    else card.style.display = 'flex';
+                    
+                    grid.appendChild(card);
+                }
+            });
+        }
+        updateHiddenListUI();
+    }
+
+    function saveConfig() {
+        localStorage.setItem('kalam_premium_config', JSON.stringify(kalamConfig));
+    }
+
+    function bindCardActions() {
+        const cards = document.querySelectorAll('.dash-card');
+        cards.forEach(c => {
+            c.onclick = function(e) {
+                if (window.isEditMode || e.target.closest('.card-controls')) return; 
+                
+                // Track Usage in Analytics
+                const title = this.querySelector('h3') ? this.querySelector('h3').innerText.trim() : 'Custom Tool';
+                logToolUsage(title);
+
+                const action = this.getAttribute('data-action');
+                if(action) new Function(action)();
+            };
+        });
+    }
+
+    function openSettingsModal() { 
+        document.getElementById('settingsModal').style.display = 'flex'; 
+        sysPlayClick();
+    }
+    function closeSettingsModal() { 
+        document.getElementById('settingsModal').style.display = 'none'; 
+        toggleDashboardEditMode(false); 
+    }
+    function switchSettingsTab(tabId) {
+        document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function toggleMasterSound() {
+        kalamConfig.sounds.enabled = !kalamConfig.sounds.enabled;
+        document.getElementById('masterSoundToggle').classList.toggle('active');
+        saveConfig();
+        if(kalamConfig.sounds.enabled) sysPlaySuccess();
+    }
+    function updateVolume(val) { kalamConfig.sounds.volume = parseFloat(val); saveConfig(); sysPlayClick(); }
+    
+    function updatePrimaryColor(val) {
+        kalamConfig.appearance.primaryColor = val;
+        document.documentElement.style.setProperty('--primary', val);
+        saveConfig(); sysPlayClick();
+    }
+    function updateFont(val) {
+        kalamConfig.appearance.font = val;
+        document.documentElement.style.setProperty('--sys-font', val);
+        saveConfig(); sysPlayClick();
+    }
+    function factoryReset() {
+        if(confirm("Restore Default Settings? Saare changes aur naye buttons hat jayenge!")) {
+            localStorage.removeItem('kalam_premium_config');
+            document.getElementById('mainDashGrid').innerHTML = DEFAULT_GRID_HTML;
+            sysPlaySuccess();
+            setTimeout(() => location.reload(), 500);
+        }
+    }
+
+    window.isEditMode = false;
+    function toggleDashboardEditMode(forceState = null) {
+        const grid = document.getElementById('mainDashGrid');
+        const btn = document.getElementById('toggleEditModeBtn');
+        window.isEditMode = forceState !== null ? forceState : !window.isEditMode;
+        
+        if (window.isEditMode) {
+            grid.classList.add('edit-mode-active');
+            btn.classList.add('active');
+            Array.from(grid.querySelectorAll('.dash-card')).forEach(c => c.setAttribute('draggable', 'true'));
+            closeSettingsModal(); 
+        } else {
+            grid.classList.remove('edit-mode-active');
+            btn.classList.remove('active');
+            Array.from(grid.querySelectorAll('.dash-card')).forEach(c => c.removeAttribute('draggable'));
+            indexCurrentLayout(); 
+            sysPlaySuccess();
+        }
+    }
+
+    function toggleCardSize(event, cardId) {
+        event.stopPropagation();
+        const card = document.getElementById(cardId);
+        card.classList.toggle('card-wide');
+        sysPlayClick();
+        indexCurrentLayout();
+    }
+
+    function hideCard(event, cardId) {
+        event.stopPropagation();
+        const card = document.getElementById(cardId);
+        card.style.display = 'none';
+        sysPlayError();
+        indexCurrentLayout();
+    }
+
+    function updateHiddenListUI() {
+        const list = document.getElementById('hiddenToolsList');
+        list.innerHTML = '';
+        
+        if(kalamConfig.layout.length === 0) {
+            list.innerHTML = '<span class="italic text-slate-500">No tools found.</span>';
+            return;
+        }
+
+        kalamConfig.layout.forEach(c => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = c.html;
+            const h3 = tempDiv.querySelector('h3');
+            const title = h3 ? h3.innerText.trim() : 'Custom Tool';
+            const isVisible = c.visible;
+
+            list.innerHTML += `
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2.5 border-b border-slate-700/30 last:border-0 gap-2">
+                <span class="text-sm ${isVisible ? 'text-white font-medium' : 'text-slate-500 line-through'} truncate max-w-[200px]">${title}</span>
+                <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                    <div class="flex gap-1 bg-black/20 p-0.5 rounded">
+                        <button type="button" class="pos-btn" onclick="moveCardPos('${c.id}', 'top')" title="Move to Top">TOP</button>
+                        <button type="button" class="pos-btn" onclick="moveCardPos('${c.id}', 'mid')" title="Move to Middle">MID</button>
+                        <button type="button" class="pos-btn" onclick="moveCardPos('${c.id}', 'btm')" title="Move to Bottom">BTM</button>
+                    </div>
+                    <div class="sys-toggle snd-click ${isVisible ? 'active' : ''} ml-1" onclick="toggleCardFromSettings('${c.id}')"></div>
+                </div>
+            </div>`;
+        });
+    }
+
+    function moveCardPos(cardId, posType) {
+        const idx = kalamConfig.layout.findIndex(c => c.id === cardId);
+        if (idx === -1) return;
+        
+        const [movedItem] = kalamConfig.layout.splice(idx, 1);
+        const total = kalamConfig.layout.length;
+        
+        if (posType === 'top') {
+            kalamConfig.layout.unshift(movedItem);
+        } else if (posType === 'btm') {
+            kalamConfig.layout.push(movedItem);
+        } else if (posType === 'mid') {
+            const midIndex = Math.floor(total / 2);
+            kalamConfig.layout.splice(midIndex, 0, movedItem);
+        }
+        
+        saveConfig();
+        applyConfig();
+        sysPlaySuccess();
+    }
+
+    function toggleCardFromSettings(cardId) {
+        const configItem = kalamConfig.layout.find(c => c.id === cardId);
+        if(configItem) {
+            configItem.visible = !configItem.visible;
+            const gridCard = document.getElementById(cardId);
+            if(gridCard) {
+                gridCard.style.display = configItem.visible ? 'flex' : 'none';
+            }
+            saveConfig();
+            updateHiddenListUI();
+            sysPlayClick();
+        }
+    }
+
+    function restoreCard(cardId) {
+        toggleCardFromSettings(cardId);
+    }
+
+    // UPDATED FUNCTION: Naye optgroup dropdown se value lekar perfect card generate karega
+    function addNewCustomCard() {
+        const title = document.getElementById('newBtnTitle').value;
+        const icon = document.getElementById('newBtnIcon').value || 'fa-solid fa-star';
+        const link = document.getElementById('newBtnLink').value;
+
+        if(!title || !link) { alert("Please enter Title and Link!"); sysPlayError(); return; }
+
+        const grid = document.getElementById('mainDashGrid');
+        const cardId = 'custom-' + Date.now();
+        const newHtml = `
+        <div class="dash-card snd-click" id="${cardId}" data-action="window.open('${link}', '_blank')">
+            <div class="card-controls"><button onclick="toggleCardSize(event, '${cardId}')"><i class="fa fa-arrows-alt-h"></i></button><button onclick="hideCard(event, '${cardId}')"><i class="fa fa-eye-slash"></i></button></div>
+            <i class="fa ${icon} main-icon"></i>
+            <h3>${title}</h3>
+        </div>`;
+        
+        grid.insertAdjacentHTML('beforeend', newHtml);
+        
+        document.getElementById('newBtnTitle').value = '';
+        document.getElementById('newBtnIcon').value = 'fa-solid fa-star';
+        document.getElementById('newBtnLink').value = '';
+        
+        bindCardActions();
+        indexCurrentLayout();
+        sysPlaySuccess();
+        alert("New Option Added to Dashboard!");
+    }
+
+    function setupDragAndDrop() {
+        const grid = document.getElementById('mainDashGrid');
+        let draggedItem = null;
+
+        grid.addEventListener('dragstart', (e) => {
+            if(!window.isEditMode) return;
+            draggedItem = e.target.closest('.dash-card');
+            setTimeout(() => draggedItem.classList.add('dragging'), 0);
+        });
+
+        grid.addEventListener('dragend', (e) => {
+            if(!window.isEditMode) return;
+            if(draggedItem) draggedItem.classList.remove('dragging');
+            draggedItem = null;
+            indexCurrentLayout(); 
+        });
+
+        grid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if(!window.isEditMode || !draggedItem) return;
+            const targetItem = e.target.closest('.dash-card');
+            if(targetItem && targetItem !== draggedItem) {
+                const rect = targetItem.getBoundingClientRect();
+                const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                grid.insertBefore(draggedItem, next && targetItem.nextSibling || targetItem);
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        initSystem(); 
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -761,7 +1686,90 @@
         document.getElementById('inputResumeDate').value = `${yyyy}-${mm}-${dd}`;
     });
 
-    // Theme Toggle Logic
+    function toggleSearch() {
+        const searchBar = document.getElementById('topSearchBar');
+        if (searchBar.classList.contains('w-0')) {
+            searchBar.classList.remove('w-0', 'px-0');
+            searchBar.classList.add('w-48', 'sm:w-64', 'px-4');
+            searchBar.focus();
+        } else {
+            searchBar.classList.add('w-0', 'px-0');
+            searchBar.classList.remove('w-48', 'sm:w-64', 'px-4');
+            searchBar.value = ''; 
+            filterDashboard(); 
+        }
+    }
+
+    function filterDashboard() {
+        const searchInput = document.getElementById('topSearchBar').value.toLowerCase();
+        const dashboardGrid = document.getElementById('mainDashGrid');
+        const cards = dashboardGrid.querySelectorAll('.dash-card');
+        
+        let visibleCount = 0;
+        let lastVisibleCard = null;
+
+        cards.forEach(card => {
+            card.style.gridColumn = '';
+            
+            const configItem = kalamConfig.layout.find(c => c.id === card.id);
+            if(configItem && configItem.visible) {
+                const titleText = card.querySelector('h3').innerText.toLowerCase();
+                if (titleText.includes(searchInput)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                    lastVisibleCard = card;
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        });
+
+        if (visibleCount === 1 && searchInput.trim() !== '') {
+            lastVisibleCard.style.gridColumn = '1 / -1';
+        }
+    }
+
+    document.getElementById('topSearchBar').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const dashboardGrid = document.getElementById('mainDashGrid');
+            const visibleCards = Array.from(dashboardGrid.querySelectorAll('.dash-card')).filter(card => card.style.display !== 'none');
+            if (visibleCards.length > 0) {
+                visibleCards[0].click();
+                const searchBar = document.getElementById('topSearchBar');
+                searchBar.classList.add('w-0', 'px-0');
+                searchBar.classList.remove('w-48', 'sm:w-64', 'px-4');
+                searchBar.value = '';
+                filterDashboard(); 
+            }
+        }
+    });
+
+    function toggleMenu(e) {
+        if(e) e.stopPropagation();
+        const menu = document.getElementById('sideMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            setTimeout(() => { menu.classList.remove('scale-95', 'opacity-0'); menu.classList.add('scale-100', 'opacity-100'); }, 10);
+        } else {
+            menu.classList.remove('scale-100', 'opacity-100');
+            menu.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => menu.classList.add('hidden'), 200);
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('sideMenu');
+        const menuBtn = document.getElementById('menuToggleBtn');
+        if (menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) {
+                menu.classList.remove('scale-100', 'opacity-100');
+                menu.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => menu.classList.add('hidden'), 200);
+            }
+        }
+    });
+
     function toggleThemeMode() {
         const body = document.body;
         const themeIcon = document.getElementById('theme-icon');
@@ -771,30 +1779,20 @@
         body.classList.toggle('light-theme');
         
         if(body.classList.contains('light-theme')) {
-            themeIcon.className = "fa fa-moon text-xl text-indigo-200";
-            themeIcon.parentElement.classList.remove('bg-slate-800', 'text-white');
+            themeIcon.className = "fa fa-moon text-xl text-indigo-500";
+            themeIcon.parentElement.classList.remove('bg-slate-800', 'text-white', 'border-slate-700');
             themeIcon.parentElement.classList.add('bg-white', 'text-slate-800', 'border-slate-300');
-            
-            // Adjust Resume Creator form layout card for Light Mode
-            if(mainFormCard) {
-                mainFormCard.classList.remove('bg-white');
-                mainFormCard.classList.add('bg-slate-100/90', 'border-slate-300');
-            }
+            if(mainFormCard) { mainFormCard.classList.remove('bg-white'); mainFormCard.classList.add('bg-slate-100/90', 'border-slate-300'); }
             textElements.forEach(el => el.style.color = '#0f172a');
         } else {
             themeIcon.className = "fa fa-sun text-xl text-yellow-400";
             themeIcon.parentElement.classList.remove('bg-white', 'text-slate-800', 'border-slate-300');
-            themeIcon.parentElement.classList.add('bg-slate-800', 'text-white');
-            
-            if(mainFormCard) {
-                mainFormCard.classList.remove('bg-slate-100/90', 'border-slate-300');
-                mainFormCard.classList.add('bg-white');
-            }
+            themeIcon.parentElement.classList.add('bg-slate-800', 'text-white', 'border-slate-700');
+            if(mainFormCard) { mainFormCard.classList.remove('bg-slate-100/90', 'border-slate-300'); mainFormCard.classList.add('bg-white'); }
             textElements.forEach(el => el.style.color = '');
         }
     }
 
-    // UPGRADED FUNCTION: Opens your full Photo & Aadhar Editor code instantly in a New Tab
     function openEditor() {
         const editorCode = `<!DOCTYPE html>
 <html lang="en">
@@ -802,21 +1800,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KALAM PHOTO & AADHAR EDITOR PRO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
 
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; --text: #1e293b; --aadhar-accent: #ff9933; --success: #10b981; }
+        :root { --primary: #2563eb; --bg: #f1f5f9; --text: #1e293b; --aadhar-accent: #ff9933; --success: #10b981; --danger: #ef4444; }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 20px; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
             overflow-x: hidden;
         }
 
@@ -826,15 +1824,15 @@
 
         .corner-brand { position: fixed; bottom: 20px; right: 20px; background: #000; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 800; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; gap: 10px; border: 2px solid rgba(255,255,255,0.1); }
 
-        .card { 
-            background: rgba(255, 255, 255, 0.97); 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-            max-width: 500px; 
-            margin: auto; 
-            text-align: center; 
-            position: relative; 
+        .card {
+            background: rgba(255, 255, 255, 0.97);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 500px;
+            margin: auto;
+            text-align: center;
+            position: relative;
             z-index: 10;
             border-top: 6px solid var(--primary);
             transition: all 0.3s ease;
@@ -855,6 +1853,34 @@
         .adjust-btn { background: var(--primary); color: white; border: none; margin-top: 10px; cursor: pointer; display: none; font-weight: 600; transition: 0.3s; }
         .adjust-btn:hover { opacity: 0.9; }
 
+        .bg-remove-btn {
+            background: #da2828;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+            font-weight: 800;
+            margin-top: 8px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .bg-remove-btn:hover { background: #b11a1a; }
+        
+        .api-status { font-size: 13px; font-weight: 600; margin-top: 8px; display: none; }
+        .api-status.success {
+            display: block !important;
+            background-color: #eafaf1; 
+            color: #0b663c; 
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 800;
+            border: none;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .upload-row-box {
             display: flex;
             align-items: center;
@@ -868,7 +1894,7 @@
         }
 
         .append-indicator-toggle {
-            display: none; 
+            display: none;
             align-items: center;
             justify-content: center;
             width: 52px;
@@ -893,7 +1919,7 @@
         .append-indicator-toggle .status-dot {
             width: 12px;
             height: 12px;
-            background-color: #dc2626; 
+            background-color: #dc2626;
             border-radius: 50%;
             transition: all 0.2s ease;
         }
@@ -902,7 +1928,7 @@
             border-color: var(--success);
         }
         .append-indicator-toggle.active .status-dot {
-            background-color: var(--success); 
+            background-color: var(--success);
         }
 
         #editor-section { display: none; margin-top: 15px; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; }
@@ -944,6 +1970,9 @@
             <div class="status-dot"></div>
         </div>
     </div>
+
+    <button id="bg-remove-btn" class="bg-remove-btn" onclick="removeBackground()"><i class="fa fa-pencil"></i> Remove Background AI</button>
+    <div id="apiStatus" class="api-status"></div>
 
     <button id="show-adjuster" class="adjust-btn" onclick="toggleAdjuster()"><i class="fa fa-crop"></i> Adjust Photo</button>
 
@@ -995,22 +2024,26 @@
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+    const API_KEY = "oahXt6i8HrkxHRVyZ3t9BpT4";
+
     let cropper;
     let isAdjusting = false;
-    let originalImageSrc = null; 
+    let originalImageSrc = null;
     let lastCroppedImage = null;
 
-    let currentXPosition = 50; 
+    let currentXPosition = 50;
     let currentYPosition = 50;
     let totalItemsPrintedOnSheet = 0;
     let isCanvasInitialized = false;
-    let isAppendActive = false; 
+    let isAppendActive = false;
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const imagePreview = document.getElementById('image-preview');
     const uploadInput = document.getElementById('upload');
     const adjustBtn = document.getElementById('show-adjuster');
+    const bgRemoveBtn = document.getElementById('bg-remove-btn');
+    const apiStatus = document.getElementById('apiStatus');
     const editorSection = document.getElementById('editor-section');
     const appendIndicator = document.getElementById('appendIndicator');
 
@@ -1045,6 +2078,9 @@
         isAdjusting = false;
         editorSection.style.display = 'none';
         adjustBtn.style.display = 'none';
+        bgRemoveBtn.style.display = 'none';
+        apiStatus.style.display = 'none';
+        apiStatus.className = "api-status";
         adjustBtn.innerHTML = "<i class='fa fa-crop'></i> Adjust Photo";
         originalImageSrc = null;
         lastCroppedImage = null;
@@ -1059,7 +2095,7 @@
     }
 
     function toggleAppendState() {
-        if (!isCanvasInitialized) return; 
+        if (!isCanvasInitialized) return;
         isAppendActive = !isAppendActive;
         if (isAppendActive) {
             appendIndicator.classList.add('active');
@@ -1083,6 +2119,9 @@
         isAdjusting = false;
         editorSection.style.display = 'none';
         adjustBtn.style.display = 'none';
+        bgRemoveBtn.style.display = 'none';
+        apiStatus.style.display = 'none';
+        apiStatus.className = "api-status";
         adjustBtn.innerHTML = "<i class='fa fa-crop'></i> Adjust Photo";
         lastCroppedImage = null;
 
@@ -1094,7 +2133,7 @@
                 try {
                     const pdf = await pdfjsLib.getDocument({ data: typedarray, password: password }).promise;
                     const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 6.0 }); 
+                    const viewport = page.getViewport({ scale: 6.0 });
                     const tempCanvas = document.createElement('canvas');
                     const tempCtx = tempCanvas.getContext('2d');
                     tempCanvas.height = viewport.height;
@@ -1104,8 +2143,8 @@
                     
                     if(document.getElementById('workMode').value === 'aadhar') {
                         const cropW = tempCanvas.width;
-                        const cropH = tempCanvas.height * 0.32; 
-                        const cropY = tempCanvas.height - cropH - (tempCanvas.height * 0.04); 
+                        const cropH = tempCanvas.height * 0.32;
+                        const cropY = tempCanvas.height - cropH - (tempCanvas.height * 0.04);
                         const finalCrop = document.createElement('canvas');
                         finalCrop.width = cropW; finalCrop.height = cropH;
                         finalCrop.getContext('2d').drawImage(tempCanvas, 0, cropY, cropW, cropH, 0, 0, cropW, cropH);
@@ -1115,6 +2154,9 @@
                     }
                     imagePreview.src = originalImageSrc;
                     adjustBtn.style.display = 'block';
+                    if (document.getElementById('workMode').value !== 'aadhar') {
+                        bgRemoveBtn.style.display = 'block';
+                    }
                 } catch (err) { alert("PDF Error! Password galat ho sakta hai."); }
             };
             reader.readAsArrayBuffer(file);
@@ -1122,8 +2164,72 @@
             originalImageSrc = URL.createObjectURL(file);
             imagePreview.src = originalImageSrc;
             adjustBtn.style.display = 'block';
+            if (document.getElementById('workMode').value !== 'aadhar') {
+                bgRemoveBtn.style.display = 'block';
+            }
         }
     });
+
+    async function removeBackground() {
+        if (!originalImageSrc) {
+            alert("Pehle photo upload karein!");
+            return;
+        }
+
+        bgRemoveBtn.disabled = true;
+        apiStatus.className = "api-status";
+        apiStatus.style.background = "none";
+        apiStatus.style.padding = "0";
+        apiStatus.style.display = "block";
+        apiStatus.style.color = "var(--text)";
+        apiStatus.innerHTML = "<i class='fa fa-spinner fa-spin'></i> AI Background Remove Ho Raha Hai... Kripya Rukein.";
+
+        try {
+            const responseBlob = await fetch(originalImageSrc);
+            const blob = await responseBlob.blob();
+
+            const formData = new FormData();
+            formData.append("image_file", blob);
+            formData.append("size", "auto");
+
+            const apiResponse = await fetch("https://api.remove.bg/v1.0/removebg", {
+                method: "POST",
+                headers: {
+                    "X-Api-Key": API_KEY
+                },
+                body: formData
+            });
+
+            if (!apiResponse.ok) {
+                throw new Error("API Request Failed! Token check karein ya balance khatam ho sakta hai.");
+            }
+
+            const resultBlob = await apiResponse.blob();
+            originalImageSrc = URL.createObjectURL(resultBlob);
+            imagePreview.src = originalImageSrc;
+
+            if (cropper) {
+                cropper.replace(originalImageSrc);
+            }
+
+            apiStatus.style.background = ""; 
+            apiStatus.style.padding = ""; 
+            apiStatus.style.color = ""; 
+            apiStatus.className = "api-status success";
+            apiStatus.innerHTML = "Background Removed Successfully";
+
+        } catch (error) {
+            console.error(error);
+            apiStatus.className = "api-status";
+            apiStatus.style.background = "none";
+            apiStatus.style.padding = "0";
+            apiStatus.style.color = "var(--danger)";
+            apiStatus.innerHTML = "<i class='fa fa-exclamation-circle'></i> Error: Background nahi hataya ja saka.";
+            alert("Background Hatane Me Dikkat Aayi! Kripya check karein.");
+        } finally {
+            bgRemoveBtn.disabled = false;
+        }
+    }
 
     function toggleAdjuster() {
         const mode = document.getElementById('workMode').value;
@@ -1138,21 +2244,21 @@
             
             let ratio = mode === 'aadhar' ? 17.5 / 5.5 : parseFloat(document.getElementById("photo-size").value.split(',')[0]) / parseFloat(document.getElementById("photo-size").value.split(',')[1]);
 
-            cropper = new Cropper(imagePreview, { 
-                aspectRatio: ratio, 
+            cropper = new Cropper(imagePreview, {
+                aspectRatio: ratio,
                 viewMode: 1,
                 autoCropArea: 1
             });
             adjustBtn.innerHTML = "<i class='fa fa-check'></i> Apply Crop";
         } else {
-            if (cropper) { 
-                lastCroppedImage = cropper.getCroppedCanvas({ 
-                    width: 3600, 
+            if (cropper) {
+                lastCroppedImage = cropper.getCroppedCanvas({
+                    width: 3600,
                     imageSmoothingEnabled: true,
-                    imageSmoothingQuality: 'high' 
-                }); 
+                    imageSmoothingQuality: 'high'
+                });
                 imagePreview.src = lastCroppedImage.toDataURL('image/png', 1.0);
-                cropper.destroy(); cropper = null; 
+                cropper.destroy(); cropper = null;
             }
             isAdjusting = false;
             editorSection.style.display = 'none';
@@ -1175,7 +2281,7 @@
         let isA4FullSize = (sizeValue === "2480,3508" && mode !== 'aadhar');
 
         if (mode === 'aadhar') {
-            targetW = 17.5 * CM_TO_PX; 
+            targetW = 17.5 * CM_TO_PX;
             targetH = 5.5 * CM_TO_PX;
             cols = 1; qty = 1; gap = 40;
         } else {
@@ -1187,7 +2293,7 @@
             gap = isA4FullSize ? 0 : parseInt(document.getElementById("gap").value);
         }
 
-        let leftMarginStartX = isA4FullSize ? 0 : 50; 
+        let leftMarginStartX = isA4FullSize ? 0 : 50;
 
         if (!isAppendActive || !isCanvasInitialized) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1212,12 +2318,12 @@
                 }
 
                 ctx.save();
-                ctx.filter = "brightness(1.04) contrast(1.08) saturate(1.15)";
+                ctx.filter = "brightness(1.05) contrast(1.08) saturate(1.15)";
                 ctx.drawImage(img, currentXPosition, currentYPosition, targetW, targetH);
                 ctx.restore();
                 
                 ctx.save();
-                ctx.strokeStyle = "#000000"; 
+                ctx.strokeStyle = "#000000";
                 ctx.lineWidth = isA4FullSize ? 1 : 2;
                 ctx.strokeRect(currentXPosition, currentYPosition, targetW, targetH);
                 ctx.restore();
@@ -1230,9 +2336,9 @@
                     currentXPosition += targetW + gap;
                     totalItemsPrintedOnSheet++;
                     
-                    if (totalItemsPrintedOnSheet % cols === 0 && i < qty - 1) { 
-                        currentXPosition = leftMarginStartX; 
-                        currentYPosition += targetH + gap; 
+                    if (totalItemsPrintedOnSheet % cols === 0 && i < qty - 1) {
+                        currentXPosition = leftMarginStartX;
+                        currentYPosition += targetH + gap;
                     }
                 }
             }
@@ -1249,7 +2355,7 @@
     function downloadAndPrint() {
         const link = document.createElement('a');
         link.download = 'Kalam_HD_Print.png';
-        link.href = canvas.toDataURL("image/png", 1.0); 
+        link.href = canvas.toDataURL("image/png", 1.0);
         link.click();
         setTimeout(() => { window.print(); }, 500);
     }
@@ -1267,7 +2373,6 @@
         document.getElementById('main-content').style.display = 'none';
         document.getElementById('resume-maker-content').style.display = 'block';
         
-        // Initializer
         if(document.getElementById('wrapperQualification').children.length === 0) {
             appendQualificationBox();
             appendOtherBox();
@@ -1276,9 +2381,7 @@
         }
     }
 
-    /* ==========================================
-       CASH COUNTER LOGIC CODES
-       ========================================== */
+    /* CASH COUNTER LOGIC CODES */
     function toggleCashCounter() {
         const modal = document.getElementById('cash-counter-modal');
         if(modal.classList.contains('hidden')) {
@@ -1314,6 +2417,164 @@
         document.getElementById('grandTotalCash').innerText = '₹ 0';
     }
 
+    /* PROFESSIONAL NEON CALCULATOR LOGIC */
+    let coreExpression = "";
+    let isExecutionState = false;
+    
+    function toggleStandardCalc() {
+        const modal = document.getElementById('standard-calc-modal');
+        if(modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } else {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const keypad = document.getElementById('chassis-keypad');
+        if(keypad) {
+            keypad.addEventListener('click', (event) => {
+                const TargetButton = event.target.closest('.calc-btn');
+                if (!TargetButton) return;
+
+                const { type, val, action } = TargetButton.dataset;
+
+                if (type === 'input') routeInputPipeline(val);
+                else if (action === 'clear') resetEngine();
+                else if (action === 'delete') processingBackspace();
+                else if (action === 'evaluate') executeProcessingFinal();
+            });
+        }
+    });
+
+    function routeInputPipeline(token) {
+        const previewView = document.getElementById('preview-view');
+        if (isExecutionState) {
+            if (['+', '-', '*', '/'].includes(token)) {
+                isExecutionState = false;
+            } else {
+                coreExpression = "";
+                isExecutionState = false;
+            }
+            previewView.classList.remove('evaluated-success');
+        }
+
+        const activeLastChar = coreExpression.slice(-1);
+        const basicOps = ['+', '-', '*', '/'];
+
+        if (basicOps.includes(token) && basicOps.includes(activeLastChar)) {
+            coreExpression = coreExpression.slice(0, -1) + token;
+        } else {
+            if (coreExpression === "" && ['+', '*', '/'].includes(token)) return;
+            if (token === '.' && isolateActiveNumericBlock().includes('.')) return;
+            coreExpression += token;
+        }
+        refreshDisplayLayout();
+    }
+
+    function resetEngine() {
+        coreExpression = "";
+        isExecutionState = false;
+        document.getElementById('output-view').innerText = "0";
+        document.getElementById('preview-view').innerText = "";
+        document.getElementById('preview-view').classList.remove('evaluated-success');
+    }
+
+    function processingBackspace() {
+        if (isExecutionState) return resetEngine();
+        if (coreExpression.endsWith('*0.01')) {
+            coreExpression = coreExpression.slice(0, -5);
+        } else {
+            coreExpression = coreExpression.slice(0, -1);
+        }
+        refreshDisplayLayout();
+    }
+
+    function isolateActiveNumericBlock() {
+        const structuralSlices = coreExpression.split(/[\+\-\*\/]/);
+        return structuralSlices[structuralSlices.length - 1] || "";
+    }
+
+    function refreshDisplayLayout() {
+        const outputView = document.getElementById('output-view');
+        const previewView = document.getElementById('preview-view');
+        
+        if (coreExpression === "") {
+            outputView.innerText = "0";
+            previewView.innerText = "";
+        } else {
+            outputView.innerText = coreExpression.replace(/\*0.01/g, '%').replace(/\*/g, '×').replace(/\//g, '÷');
+            executeComputePreview();
+        }
+        outputView.scrollLeft = outputView.scrollWidth;
+    }
+
+    function executeComputePreview() {
+        const previewView = document.getElementById('preview-view');
+        let expr = coreExpression;
+        
+        while (['+', '-', '*', '/'].includes(expr.slice(-1))) { expr = expr.slice(0, -1); }
+
+        if (!expr) { previewView.innerText = ""; return; }
+
+        try {
+            let res = Function(`"use strict"; return (${expr})`)();
+            if (res !== undefined && !isNaN(res) && res !== Infinity && res !== -Infinity) {
+                previewView.innerText = "= " + formatDecimalOutput(res);
+            } else {
+                previewView.innerText = "";
+            }
+        } catch { }
+    }
+
+    function executeProcessingFinal() {
+        if (!coreExpression) return;
+        const outputView = document.getElementById('output-view');
+        const previewView = document.getElementById('preview-view');
+        
+        try {
+            let res = Function(`"use strict"; return (${coreExpression})`)();
+            if (res === Infinity || res === -Infinity || isNaN(res)) throw new Error();
+            
+            res = formatDecimalOutput(res);
+            outputView.innerText = res;
+            previewView.innerText = "Answer";
+            previewView.classList.add('evaluated-success');
+            
+            coreExpression = res.toString();
+            isExecutionState = true;
+        } catch {
+            outputView.innerText = "Error";
+            previewView.innerText = "";
+            coreExpression = "";
+            isExecutionState = false;
+        }
+        outputView.scrollLeft = 0;
+    }
+
+    function formatDecimalOutput(numericVal) {
+        return numericVal.toString().includes('.') ? parseFloat(numericVal.toFixed(8)) : numericVal;
+    }
+
+    document.addEventListener('keydown', (e) => {
+        const calcModal = document.getElementById('standard-calc-modal');
+        if(!calcModal.classList.contains('hidden')) {
+            const mappedKeys = { 'Enter': 'evaluate', '=': 'evaluate', 'Backspace': 'delete', 'Escape': 'clear', '/': '/', '*': '*', '-': '-', '+': '+', '%': '*0.01' };
+            const selectedAction = mappedKeys[e.key];
+            if (selectedAction) {
+                e.preventDefault();
+                if (selectedAction === 'evaluate') executeProcessingFinal();
+                else if (selectedAction === 'delete') processingBackspace();
+                else if (selectedAction === 'clear') resetEngine();
+                else routeInputPipeline(selectedAction);
+            } else if ("0123456789.".includes(e.key)) {
+                e.preventDefault(); routeInputPipeline(e.key);
+            }
+        }
+    });
+
     let IMMUTABLE_AVATAR_STREAM_CACHE = null;
 
     function setPhotoOption(option) {
@@ -1322,11 +2583,11 @@
         const btnWithout = document.getElementById('btnWithoutPhoto');
         
         if (option === 'withPhoto') {
-            btnWith.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
-            btnWithout.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+            btnWith.className = "snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
+            btnWithout.className = "snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
         } else {
-            btnWithout.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
-            btnWith.className = "flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+            btnWithout.className = "snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-blue-600 border-blue-600 text-white shadow-md";
+            btnWith.className = "snd-click flex items-center justify-center gap-2 border-2 py-3 px-4 rounded-xl font-semibold text-sm transition cursor-pointer bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
         }
         togglePhotoOption();
     }
@@ -1378,11 +2639,11 @@
         const targetDiv = document.createElement('div');
         targetDiv.className = "grid grid-cols-12 gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-200/60 shadow-xs";
         targetDiv.innerHTML = `
-            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. 10th / 12th / B.A" class="sleek-entry-field" data-q="degree" oninput="updateLivePreview()"></div>
-            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. UP Board / CBSE" class="sleek-entry-field" data-q="board" oninput="updateLivePreview()"></div>
-            <div class="col-span-5 md:col-span-2"><input type="text" placeholder="Year" class="sleek-entry-field text-center" data-q="year" oninput="updateLivePreview()"></div>
-            <div class="col-span-5 md:col-span-1"><input type="text" placeholder="%" class="sleek-entry-field text-center" data-q="percent" oninput="updateLivePreview()"></div>
-            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="col-span-2 md:col-span-1 text-red-500 hover:text-red-700 font-bold text-base text-center cursor-pointer p-1">✕</button>
+            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. 10th / 12th / B.A" class="sleek-entry-field snd-type" data-q="degree" oninput="updateLivePreview()"></div>
+            <div class="col-span-12 md:col-span-4"><input type="text" placeholder="e.g. UP Board / CBSE" class="sleek-entry-field snd-type" data-q="board" oninput="updateLivePreview()"></div>
+            <div class="col-span-5 md:col-span-2"><input type="text" placeholder="Year" class="sleek-entry-field snd-type text-center" data-q="year" oninput="updateLivePreview()"></div>
+            <div class="col-span-5 md:col-span-1"><input type="text" placeholder="%" class="sleek-entry-field snd-type text-center" data-q="percent" oninput="updateLivePreview()"></div>
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="snd-click col-span-2 md:col-span-1 text-red-500 hover:text-red-700 font-bold text-base text-center cursor-pointer p-1">✕</button>
         `;
         host.appendChild(targetDiv);
         updateLivePreview();
@@ -1393,8 +2654,8 @@
         const targetDiv = document.createElement('div');
         targetDiv.className = "flex gap-2 items-center";
         targetDiv.innerHTML = `
-            <input type="text" placeholder="e.g. Basic Computer Knowledge" class="w-full sleek-entry-field" data-o="val" oninput="updateLivePreview()">
-            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
+            <input type="text" placeholder="e.g. Basic Computer Knowledge" class="w-full sleek-entry-field snd-type" data-o="val" oninput="updateLivePreview()">
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="snd-click bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
         `;
         host.appendChild(targetDiv);
         updateLivePreview();
@@ -1405,8 +2666,8 @@
         const targetDiv = document.createElement('div');
         targetDiv.className = "flex gap-2 items-center";
         targetDiv.innerHTML = `
-            <input type="text" placeholder="e.g. 2 Years Experience" class="w-full sleek-entry-field" data-e="val" oninput="updateLivePreview()">
-            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
+            <input type="text" placeholder="e.g. 2 Years Experience" class="w-full sleek-entry-field snd-type" data-e="val" oninput="updateLivePreview()">
+            <button type="button" onclick="this.parentElement.remove(); updateLivePreview();" class="snd-click bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-sm cursor-pointer transition shrink-0">✕</button>
         `;
         host.appendChild(targetDiv);
         updateLivePreview();
@@ -1488,7 +2749,6 @@
             document.getElementById('sectionPersonalInfo').classList.add('hidden');
         }
 
-        // New Logic for Resume Date
         if(nm.trim() !== "") {
             const resumeDateInput = document.getElementById('inputResumeDate').value;
             if(resumeDateInput) {
@@ -1502,7 +2762,6 @@
             }
         }
 
-        // Academic Tables Rows Processing
         const tableBody = document.getElementById('outQualTable');
         tableBody.innerHTML = '';
         const qualificationRows = document.getElementById('wrapperQualification').children;
@@ -1529,7 +2788,6 @@
         if(totalQ > 0) { document.getElementById('sectionQualification').classList.remove('hidden'); }
         else { document.getElementById('sectionQualification').classList.add('hidden'); }
 
-        // Skills Processing
         const otherUlList = document.getElementById('outOtherQual');
         otherUlList.innerHTML = '';
         const otherInputs = document.querySelectorAll('[data-o="val"]');
@@ -1545,7 +2803,6 @@
         if(totalO > 0) { document.getElementById('sectionOtherQual').classList.remove('hidden'); }
         else { document.getElementById('sectionOtherQual').classList.add('hidden'); }
 
-        // Experience Processing
         const expUlList = document.getElementById('outExperience');
         expUlList.innerHTML = '';
         const expInputs = document.querySelectorAll('[data-e="val"]');
@@ -1562,7 +2819,6 @@
         else { document.getElementById('sectionExperience').classList.add('hidden'); }
     }
 
-    // SYSTEM HIGH-DEFINITION PRINT CORRECTIONS
     function generateHDPrint() {
         updateLivePreview();
         const oldZone = document.getElementById('print-engine-secure-zone');
@@ -1577,12 +2833,10 @@
         setTimeout(() => { if(printZone) printZone.remove(); }, 500);
     }
 
-    // EXPORT TO PDF - FIXED BUG (Blank PDF issue resolved by cloning & isolating layout)
     function exportPDF() {
         updateLivePreview(); 
         const fileIdentity = document.getElementById('inputName').value || "Document";
 
-        // Fix: Clone the canvas to prevent scroll-offset blank PDF issues & reduce scale to prevent memory limit
         const sourceNode = document.getElementById('mainPrintSheetCanvas');
         const clonedNode = sourceNode.cloneNode(true);
         
@@ -1591,7 +2845,7 @@
         tempContainer.style.top = '0';
         tempContainer.style.left = '0';
         tempContainer.style.width = '210mm';
-        tempContainer.style.zIndex = '-9999'; // Hides it behind other elements
+        tempContainer.style.zIndex = '-9999'; 
         tempContainer.style.backgroundColor = '#ffffff';
         tempContainer.appendChild(clonedNode);
         
@@ -1606,9 +2860,204 @@
         };
         
         html2pdf().set(optionsConfig).from(clonedNode).save().then(() => {
-            // Clean up the temporary clone after download is triggered
             document.body.removeChild(tempContainer);
         });
+    }
+
+    /* =========================================================================================
+       ANALYTICS CHART SYSTEM
+       ========================================================================================= */
+    let analyticsChartInstance = null;
+
+    function openAnalyticsModal() {
+        document.getElementById('analyticsModal').style.display = 'flex';
+        renderChart(7); // default 7 days
+        sysPlayClick();
+    }
+    
+    function closeAnalyticsModal() {
+        document.getElementById('analyticsModal').style.display = 'none';
+        sysPlayClick();
+    }
+
+    function renderChart(days) {
+        let data = JSON.parse(localStorage.getItem('kalam_analytics_data')) || [];
+        const now = Date.now();
+        const timeLimit = now - (days * 24 * 60 * 60 * 1000);
+
+        let filteredData = data.filter(d => d.time >= timeLimit);
+
+        let counts = {};
+        filteredData.forEach(d => {
+            counts[d.name] = (counts[d.name] || 0) + 1;
+        });
+
+        const labels = Object.keys(counts);
+        const values = Object.values(counts);
+
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        if (analyticsChartInstance) {
+            analyticsChartInstance.destroy();
+        }
+
+        analyticsChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `Tool Usage Count (Last ${days} Days)`,
+                    data: values,
+                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    x: { 
+                        ticks: { color: '#94a3b8' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#64748b', font: { weight: 'bold' } } }
+                }
+            }
+        });
+        sysPlayClick();
+    }
+
+    /* =========================================================================================
+       DOCUMENT LOCKER SYSTEM (SECURED)
+       ========================================================================================= */
+    function openLockerModal() {
+        document.getElementById('lockerModal').style.display = 'flex';
+        renderLocker();
+        sysPlayClick();
+    }
+    
+    function closeLockerModal() {
+        document.getElementById('lockerModal').style.display = 'none';
+        sysPlayClick();
+    }
+
+    function uploadDocument() {
+        const nameInput = document.getElementById('docName').value;
+        const fileInput = document.getElementById('docFile').files[0];
+
+        if (!nameInput || !fileInput) {
+            alert("Please enter a document name and select a file.");
+            sysPlayError();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const docData = {
+                id: Date.now().toString(),
+                name: nameInput.trim(),
+                dataUrl: e.target.result,
+                type: fileInput.type,
+                date: new Date().toLocaleDateString('en-IN')
+            };
+
+            let docs = JSON.parse(localStorage.getItem('kalam_document_locker')) || [];
+            docs.push(docData);
+            
+            try {
+                localStorage.setItem('kalam_document_locker', JSON.stringify(docs));
+                document.getElementById('docName').value = '';
+                document.getElementById('docFile').value = '';
+                document.getElementById('docFileName').innerText = 'No file chosen';
+                renderLocker();
+                sysPlaySuccess();
+            } catch(err) {
+                alert("Storage limit exceeded! File is too large to save in the local locker.");
+                sysPlayError();
+            }
+        };
+        reader.readAsDataURL(fileInput);
+    }
+
+    function renderLocker() {
+        const grid = document.getElementById('lockerGrid');
+        grid.innerHTML = '';
+        let docs = JSON.parse(localStorage.getItem('kalam_document_locker')) || [];
+
+        if (docs.length === 0) {
+            grid.innerHTML = '<div class="col-span-full text-center text-slate-400 font-bold py-10 mt-10">Locker is empty. Upload your first document securely!</div>';
+            return;
+        }
+
+        docs.forEach(doc => {
+            const icon = doc.type.includes('pdf') ? 'fa-file-pdf text-red-500' : 'fa-image text-blue-500';
+            
+            const card = document.createElement('div');
+            card.className = "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex flex-col gap-3 shadow-sm hover:shadow-md transition";
+            card.innerHTML = `
+                <div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 pb-2">
+                    <i class="fa ${icon} text-3xl"></i>
+                    <div class="overflow-hidden">
+                        <h3 class="font-bold text-slate-800 dark:text-white truncate" title="${doc.name}">${doc.name}</h3>
+                        <p class="text-xs text-slate-400 font-semibold">${doc.date}</p>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-auto pt-2">
+                    <button onclick="viewDocument('${doc.id}')" class="text-blue-500 hover:text-blue-700 text-sm font-bold snd-click flex items-center gap-1"><i class="fa fa-eye"></i> View</button>
+                    <button onclick="downloadDocument('${doc.id}')" class="text-emerald-500 hover:text-emerald-700 text-sm font-bold snd-click flex items-center gap-1"><i class="fa fa-download"></i> Down</button>
+                    <button onclick="deleteDocument('${doc.id}')" class="text-red-500 hover:text-red-700 text-sm font-bold snd-click flex items-center gap-1"><i class="fa fa-trash"></i> Del</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function viewDocument(id) {
+        let docs = JSON.parse(localStorage.getItem('kalam_document_locker')) || [];
+        let doc = docs.find(d => d.id === id);
+        if(doc) {
+            let win = window.open();
+            if(doc.type.includes('pdf') || doc.type.includes('image')) {
+                win.document.write('<iframe src="' + doc.dataUrl + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+            } else {
+                win.document.write('<img src="' + doc.dataUrl + '" style="max-width:100%;">');
+            }
+            sysPlayClick();
+        }
+    }
+
+    function downloadDocument(id) {
+        let docs = JSON.parse(localStorage.getItem('kalam_document_locker')) || [];
+        let doc = docs.find(d => d.id === id);
+        if(doc) {
+            const link = document.createElement('a');
+            link.href = doc.dataUrl;
+            link.download = doc.name;
+            link.click();
+            sysPlaySuccess();
+        }
+    }
+
+    function deleteDocument(id) {
+        const pass = prompt("Document Delete Password (Document locker is secured):");
+        if (pass === '244601') {
+            let docs = JSON.parse(localStorage.getItem('kalam_document_locker')) || [];
+            docs = docs.filter(d => d.id !== id);
+            localStorage.setItem('kalam_document_locker', JSON.stringify(docs));
+            renderLocker();
+            sysPlaySuccess();
+        } else if (pass !== null) {
+            alert("Incorrect Password! You are not authorized to delete.");
+            sysPlayError();
+        }
     }
 </script>
 
