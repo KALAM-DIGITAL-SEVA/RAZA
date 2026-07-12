@@ -18,10 +18,7 @@
         }
 
         /* === Dark Mode Variables === */
-        body.dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
+        body.dark-mode { background-color: #121212; color: #e0e0e0; }
         body.dark-mode .navbar, body.dark-mode .dropdown-menu { background-color: #1e1e1e; border-color: #333; }
         body.dark-mode .search-bar { background-color: #121212; color: #fff; border-color: #444; }
         body.dark-mode .dropdown-menu button { color: #e0e0e0; border-bottom: 1px solid #333; }
@@ -32,44 +29,32 @@
         body.dark-mode td.teacher-name { background-color: #2a2a2a; color: #e0e0e0; }
         body.dark-mode tbody tr:hover { background-color: #333; }
         body.dark-mode .header h2, body.dark-mode .header h1 { color: #e0e0e0; }
+        body.dark-mode .modal-content { background-color: #1e1e1e; color: #fff; border: 1px solid #333;}
+        body.dark-mode .modal-table th { background-color: #000; color: #fff; }
 
         /* === Navigation Bar === */
         .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #fff;
-            padding: 15px 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: #fff; padding: 15px 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; z-index: 100;
         }
-        .navbar-title { font-size: 1.5em; font-weight: bold; text-transform: uppercase; }
-        .navbar-right { display: flex; align-items: center; gap: 15px; }
-        .search-bar {
-            padding: 8px 15px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            font-size: 1em;
-            width: 250px;
-            outline: none;
-        }
-        .search-bar:focus { border-color: #2980b9; }
+        .navbar-title { font-size: 1.5em; font-weight: bold; text-transform: uppercase; color: #2980b9; }
+        .navbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         
-        .menu-icon { font-size: 1.8em; cursor: pointer; user-select: none; padding: 0 5px; }
+        .search-bar {
+            padding: 10px 15px; border: 1px solid #bdc3c7; border-radius: 8px;
+            font-size: 1em; width: 220px; outline: none; cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .search-bar:focus { border-color: #2980b9; box-shadow: 0 0 5px rgba(41, 128, 185, 0.2); }
+        
+        .menu-icon { font-size: 1.8em; cursor: pointer; user-select: none; padding: 0 5px; margin-left: 5px;}
         
         .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 60px;
-            right: 30px;
-            background-color: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            flex-direction: column;
-            width: 240px;
-            z-index: 1000;
+            display: none; position: absolute; top: 65px; right: 30px;
+            background-color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #ecf0f1; border-radius: 8px; flex-direction: column;
+            width: 240px; z-index: 1000; overflow: hidden;
         }
         .dropdown-menu.show { display: flex; }
         .dropdown-menu button {
@@ -78,106 +63,117 @@
             border-bottom: 1px solid #ecf0f1; transition: background 0.2s;
         }
         .dropdown-menu button:last-child { border-bottom: none; }
-        .dropdown-menu button:hover { background-color: #f4f7f6; }
+        .dropdown-menu button:hover { background-color: #f4f7f6; padding-left: 20px; }
 
         /* === Header & Profile Area === */
-        .container { padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; }
         .school-logo {
-            max-width: 100px; max-height: 100px; border-radius: 50%; object-fit: cover;
-            display: none; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 110px; max-height: 110px; border-radius: 50%; object-fit: cover;
+            display: none; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 3px solid #2980b9;
         }
-        .header h1 { font-size: 2.5em; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; color: #2c3e50; }
         .header p { color: #7f8c8d; font-size: 1.1em; }
 
-        /* === Table Styling (Exactly from your file) === */
+        /* === Main Table Styling === */
         .table-container {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            overflow-x: auto;
+            background: #fff; border-radius: 12px; padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05); overflow-x: auto;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px; 
-        }
-        th, td {
-            border: 1px solid #bdc3c7;
-            padding: 10px;
-            text-align: center;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #2c3e50;
-            color: #ffffff;
-            font-size: 1em;
-            padding: 15px 10px;
-        }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { border: 1px solid #bdc3c7; padding: 12px 10px; text-align: center; vertical-align: middle; }
+        th { background-color: #2c3e50; color: #ffffff; font-size: 1.05em; padding: 15px 10px; text-transform: uppercase; }
+        
         td[contenteditable="true"]:focus, th[contenteditable="true"]:focus {
-            outline: 2px solid #2980b9;
-            background-color: #eef2f5;
-        }
-        body.dark-mode td[contenteditable="true"]:focus, body.dark-mode th[contenteditable="true"]:focus { background-color: #333; }
-        
-        td.teacher-name {
-            font-weight: bold;
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            text-align: left;
+            outline: 2px solid #3498db; background-color: rgba(52, 152, 219, 0.05);
         }
         
-        /* Layout to hold Teacher Name and Delete Button seamlessly */
+        td.teacher-name { font-weight: bold; background-color: #f8f9fa; color: #2c3e50; text-align: left; }
         .t-name-wrapper { display: flex; justify-content: space-between; align-items: center; }
         .t-name { width: 100%; outline: none; }
         
         .delete-btn {
-            display: none;
-            background-color: #e74c3c;
-            color: white; border: none; border-radius: 3px;
-            padding: 2px 6px; cursor: pointer; font-size: 0.8em; margin-left: 5px;
+            display: none; background-color: #e74c3c; color: white; border: none; border-radius: 4px;
+            padding: 4px 8px; cursor: pointer; font-size: 0.85em; margin-left: 5px; transition: 0.2s;
         }
+        .delete-btn:hover { background-color: #c0392b; }
         body.editing-mode .delete-btn { display: inline-block; }
 
         .lunch-col {
-            background-color: #e74c3c !important;
-            color: white; font-weight: bold; letter-spacing: 5px;
+            background-color: #e74c3c !important; color: white; font-weight: bold; letter-spacing: 5px;
             writing-mode: vertical-rl; text-orientation: upright; padding: 20px 5px !important;
         }
-        tbody tr:hover { background-color: #f9fbff; }
+        tbody tr:hover { background-color: #f1f8ff; }
 
         /* === Buttons Below Timetable === */
-        .bottom-controls {
-            margin-top: 25px; display: flex; justify-content: center; flex-wrap: wrap; gap: 15px;
-        }
+        .bottom-controls { margin-top: 30px; display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; }
         .action-btn {
-            padding: 12px 25px; font-size: 1.1em; border: none; border-radius: 5px;
-            cursor: pointer; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.3s ease;
+            padding: 12px 25px; font-size: 1.05em; font-weight: bold; border: none; border-radius: 8px;
+            cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
         }
-        .btn-print { background-color: #2980b9; } .btn-print:hover { background-color: #1c5980; }
-        .btn-download { background-color: #27ae60; } .btn-download:hover { background-color: #219653; }
-        .btn-add { background-color: #e67e22; display: none; } .btn-add:hover { background-color: #d35400; }
-        .btn-reset { background-color: #c0392b; display: none; } .btn-reset:hover { background-color: #a93226; }
-        body.editing-mode .btn-reset { display: flex; } /* Show Reset only in edit mode */
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .btn-print { background: linear-gradient(135deg, #2980b9, #2471a3); } 
+        .btn-download { background: linear-gradient(135deg, #27ae60, #229954); } 
+        .btn-add { background: linear-gradient(135deg, #e67e22, #d35400); display: none; } 
+        .btn-reset { background: linear-gradient(135deg, #e74c3c, #c0392b); display: none; } 
+        body.editing-mode .btn-reset, body.editing-mode .btn-add { display: flex; }
+
+        /* === NEW: Class Timetable Modal (Portrait View) === */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 2000;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: #fff; border-radius: 12px; width: 100%; max-width: 600px;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            position: relative; padding: 30px;
+        }
+        .modal-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; }
+        .modal-header h2 { color: #2c3e50; font-size: 2em; margin-bottom: 5px; text-transform: uppercase; }
+        .modal-header p { color: #7f8c8d; }
+        
+        .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; min-width: auto; }
+        .modal-table th, .modal-table td { border: 1px solid #bdc3c7; padding: 12px; text-align: center; }
+        .modal-table th { background-color: #2980b9; color: white; }
+        .modal-table td.m-subject { font-weight: bold; color: #2c3e50; }
+        .modal-table td.m-teacher { color: #d35400; font-weight: bold; }
+        
+        .modal-actions { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: #7f8c8d; border:none; background:none; transition:0.3s;}
+        .close-modal-btn:hover { color: #e74c3c; transform: scale(1.1);}
 
         /* === Print / Download CSS === */
         @media print {
-            @page { size: landscape; margin: 10mm; }
-            body { background-color: #fff; color: #000; padding: 0; }
-            .navbar, .bottom-controls, .delete-btn { display: none !important; }
-            .table-container { box-shadow: none; padding: 0; }
+            @page { margin: 10mm; }
+            
+            /* If printing normal table, force Landscape */
+            body:not(.printing-modal) { @page { size: landscape; } }
+            body:not(.printing-modal) .navbar, body:not(.printing-modal) .bottom-controls, body:not(.printing-modal) .delete-btn { display: none !important; }
+            body:not(.printing-modal) .table-container { box-shadow: none; padding: 0; }
+            
+            /* If printing Modal, force Portrait */
+            body.printing-modal { @page { size: portrait; } }
+            body.printing-modal > * { display: none !important; }
+            body.printing-modal .modal-overlay, body.printing-modal .modal-overlay * { display: block !important; visibility: visible; }
+            body.printing-modal .modal-overlay { 
+                position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; 
+            }
+            body.printing-modal .modal-content { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+            body.printing-modal .modal-actions, body.printing-modal .close-modal-btn { display: none !important; }
+            
+            /* Generic Print Resets */
             th { background-color: #eee !important; color: #000 !important; }
-            th, td { border: 2px solid #000 !important; font-size: 12px; padding: 8px 4px; color: #000 !important; }
-            td.teacher-name { background-color: #f9f9f9 !important; }
+            th, td { border: 2px solid #000 !important; color: #000 !important; }
             .lunch-col { background-color: #ddd !important; color: #000 !important; -webkit-print-color-adjust: exact; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         
-        @media (max-width: 600px) {
-            .navbar { flex-direction: column; gap: 10px; }
-            .search-bar { width: 100%; }
+        @media (max-width: 800px) {
+            .navbar-right { justify-content: flex-start; }
+            .search-bar { width: 100%; margin-bottom: 5px; }
         }
     </style>
 </head>
@@ -188,14 +184,33 @@
     <nav class="navbar">
         <div class="navbar-title">School System</div>
         <div class="navbar-right">
-            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search Table..." onkeyup="searchTable()">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search Teacher..." onkeyup="searchTable()">
+            
+            <select id="classFilter" class="search-bar" onchange="generateClassTimetable(this)" title="Get Timetable for a Specific Class">
+                <option value="ALL">📋 Generate Class Timetable</option>
+                <option value="N\.C\.R|NCR">Class N.C.R</option>
+                <option value="U\.K\.G|UKG">Class U.K.G</option>
+                <option value="(^|\D)1(\D|$)">Class 1</option>
+                <option value="(^|\D)2(\D|$)">Class 2</option>
+                <option value="(^|\D)3(\D|$)">Class 3</option>
+                <option value="(^|\D)4(\D|$)">Class 4</option>
+                <option value="(^|\D)5(\D|$)">Class 5</option>
+                <option value="(^|\D)6(\D|$)">Class 6</option>
+                <option value="(^|\D)7(\D|$)">Class 7</option>
+                <option value="(^|\D)8(\D|$)">Class 8</option>
+                <option value="(^|\D)9(\D|$)">Class 9</option>
+                <option value="(^|\D)10(\D|$)">Class 10</option>
+                <option value="(^|\D)11(\D|$)">Class 11</option>
+                <option value="(^|\D)12(\D|$)">Class 12</option>
+            </select>
+
             <div class="menu-icon" onclick="toggleMenu()">☰</div>
         </div>
         
         <div class="dropdown-menu" id="dropdownMenu">
             <button onclick="location.reload()">🏠 Home (Refresh)</button>
             <button onclick="triggerProfileSetup()">🏫 Profile (Set Logo & Name)</button>
-            <button onclick="toggleEdit()" id="editBtn">🔒 Edit (Requires Password)</button>
+            <button onclick="toggleEdit()" id="editBtn">🔒 Edit Mode (Password)</button>
             <button onclick="toggleTheme()" id="themeBtn">🌙 Dark Mode</button>
         </div>
     </nav>
@@ -367,8 +382,36 @@
         <div class="bottom-controls">
             <button class="action-btn btn-add" id="addTeacherBtn" onclick="addTeacherRow()">➕ Add New Teacher</button>
             <button class="action-btn btn-reset" onclick="resetToDefault()">🔄 Reset Table Data</button>
-            <button class="action-btn btn-print" onclick="window.print()">🖨️ Print Timetable</button>
-            <button class="action-btn btn-download" onclick="downloadPDF()">⬇️ Download PDF</button>
+            <button class="action-btn btn-print" onclick="window.print()">🖨️ Print Main Table</button>
+            <button class="action-btn btn-download" onclick="downloadPDF()">⬇️ Download Main PDF</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="classTimetableModal">
+        <div class="modal-content" id="classPdfArea">
+            <button class="close-modal-btn" onclick="closeClassModal()">✖</button>
+            
+            <div class="modal-header">
+                <h2 id="modalClassName">Class Timetable</h2>
+                <p id="modalSchoolName">Session 2026-2027</p>
+            </div>
+
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th>Time / Period</th>
+                        <th>Subject Details</th>
+                        <th>Teacher Name</th>
+                    </tr>
+                </thead>
+                <tbody id="classTableBody">
+                    </tbody>
+            </table>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-print" onclick="printClassModal()">🖨️ Print (Portrait)</button>
+                <button class="action-btn btn-download" onclick="downloadClassPDF()">⬇️ Download PDF</button>
+            </div>
         </div>
     </div>
 
@@ -379,6 +422,9 @@
             if (!event.target.matches('.menu-icon') && !event.target.closest('.dropdown-menu')) {
                 document.querySelectorAll(".dropdown-menu").forEach(menu => menu.classList.remove('show'));
             }
+            if (event.target == document.getElementById('classTimetableModal')) {
+                closeClassModal();
+            }
         }
 
         // === Profile Setup ===
@@ -387,7 +433,7 @@
             let newName = prompt("Enter School Name:", currentName);
             if (newName && newName.trim() !== "") {
                 document.getElementById('schoolNameDisplay').innerText = newName;
-                localStorage.setItem('schoolTitle', newName); // Save Name
+                localStorage.setItem('schoolTitle', newName);
             }
             
             alert("Now, please select your School Logo image.");
@@ -403,7 +449,7 @@
                     let logoImg = document.getElementById('schoolLogo');
                     logoImg.src = e.target.result;
                     logoImg.style.display = "block"; 
-                    localStorage.setItem('schoolLogo', e.target.result); // Save Logo
+                    localStorage.setItem('schoolLogo', e.target.result);
                 }
                 reader.readAsDataURL(file);
             }
@@ -415,16 +461,15 @@
             isDark = !isDark;
             document.body.classList.toggle('dark-mode', isDark);
             document.getElementById('themeBtn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
-            localStorage.setItem('darkMode', isDark); // Save Theme
+            localStorage.setItem('darkMode', isDark);
             toggleMenu();
         }
 
-        // === Smart Search (LUNCH FIX) ===
+        // === Normal Search (Teacher Search in Main Table) ===
         function searchTable() {
             let filter = document.getElementById('searchInput').value.toLowerCase();
             let rows = document.querySelectorAll('#tableBody tr');
             let lunchCell = document.getElementById('lunchCell');
-            
             let visibleCount = 0;
             let firstVisibleRow = null;
 
@@ -439,16 +484,13 @@
                 }
             });
 
-            // Adjust Lunch cell position and rowspan dynamically so it doesn't break table
             if (lunchCell) {
                 if (visibleCount > 0 && firstVisibleRow) {
                     lunchCell.style.display = "";
                     lunchCell.rowSpan = visibleCount;
-                    
-                    // If lunch cell is not in the first visible row, move it there
                     if (!firstVisibleRow.contains(lunchCell)) {
-                        let refNode = firstVisibleRow.children[6]; // Position after 10:30-11:10 column
-                        firstVisibleRow.insertBefore(lunchCell, refNode);
+                        let refNode = firstVisibleRow.children[6]; 
+                        if(refNode) firstVisibleRow.insertBefore(lunchCell, refNode);
                     }
                 } else {
                     lunchCell.style.display = "none";
@@ -456,7 +498,121 @@
             }
         }
 
-        // === Editing Logic (Password Protected) ===
+        // === NEW: Generate Class Timetable (Without Modifying Main Table) ===
+        function generateClassTimetable(selectElement) {
+            if (selectElement.value === "ALL") return;
+
+            let regexValue = selectElement.value;
+            let className = selectElement.options[selectElement.selectedIndex].text;
+            let regex = new RegExp(regexValue, 'i');
+
+            let rows = document.querySelectorAll('#tableBody tr');
+            let headers = Array.from(document.querySelectorAll('#scheduleTable th')).map(th => th.innerText);
+            
+            let classSchedule = [];
+
+            // Parse Main Table
+            rows.forEach((row, rowIndex) => {
+                let cells = row.querySelectorAll('td');
+                let teacherName = row.querySelector('.t-name').innerText;
+
+                cells.forEach((cell, cellIndex) => {
+                    if (cellIndex === 0) return; // Skip Teacher Name column
+                    if (cell.classList.contains('lunch-col')) return; // Skip original lunch
+
+                    // Calculate correct visual column due to Lunch rowspan affecting DOM indexing
+                    let visualCol = cellIndex;
+                    if (rowIndex > 0 && cellIndex >= 6) {
+                        visualCol = cellIndex + 1; 
+                    }
+
+                    let text = cell.innerText;
+                    if (regex.test(text)) {
+                        classSchedule.push({
+                            timeIndex: visualCol,
+                            time: headers[visualCol],
+                            teacher: teacherName,
+                            subject: text.replace(/<br>/gi, ' ').replace(/\n/g, ' ')
+                        });
+                    }
+                });
+            });
+
+            // Automatically Insert Lunch Period at Index 6
+            classSchedule.push({
+                timeIndex: 6,
+                time: headers[6],
+                teacher: "---",
+                subject: "LUNCH BREAK"
+            });
+
+            // Sort by Time
+            classSchedule.sort((a, b) => a.timeIndex - b.timeIndex);
+
+            // Render to Modal Table
+            let tbody = document.getElementById('classTableBody');
+            tbody.innerHTML = "";
+
+            if (classSchedule.length === 1) { // Only Lunch exists
+                tbody.innerHTML = "<tr><td colspan='3' style='padding: 20px;'>No classes scheduled for this class.</td></tr>";
+            } else {
+                classSchedule.forEach(item => {
+                    let tr = document.createElement('tr');
+                    if (item.subject === "LUNCH BREAK") {
+                        tr.innerHTML = `
+                            <td><strong>${item.time}</strong></td>
+                            <td colspan="2" style="background:#e74c3c; color:white; font-weight:bold; letter-spacing:2px;">LUNCH BREAK</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td><strong>${item.time}</strong></td>
+                            <td class="m-subject">${item.subject}</td>
+                            <td class="m-teacher">${item.teacher}</td>
+                        `;
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Set Header and Show Modal
+            document.getElementById('modalClassName').innerText = "Timetable: " + className;
+            let schoolName = document.getElementById('schoolNameDisplay').innerText;
+            document.getElementById('modalSchoolName').innerText = schoolName + " | Session 2026-2027";
+            
+            document.getElementById('classTimetableModal').style.display = "flex";
+            
+            // Reset dropdown to ALL immediately so user can select the same class again later if needed
+            selectElement.value = "ALL"; 
+        }
+
+        function closeClassModal() {
+            document.getElementById('classTimetableModal').style.display = "none";
+        }
+
+        // === Modal Print & PDF Logic ===
+        function printClassModal() {
+            document.body.classList.add('printing-modal');
+            window.print();
+            setTimeout(() => { document.body.classList.remove('printing-modal'); }, 500);
+        }
+
+        function downloadClassPDF() {
+            const container = document.getElementById('classPdfArea').cloneNode(true);
+            container.querySelector('.close-modal-btn').remove();
+            container.querySelector('.modal-actions').remove();
+            container.style.padding = "20px";
+            container.style.backgroundColor = "#fff";
+            container.style.color = "#000"; // Ensure text is black for PDF
+            
+            html2pdf().set({
+                margin: 0.5, filename: document.getElementById('modalClassName').innerText + '.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, useCORS: true }, 
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } // PORTRAIT SIZE
+            }).from(container).save();
+        }
+
+        // === Editing Logic (Main Table) ===
         let isEditing = false;
         const PASSWORD = "244601";
         
@@ -476,7 +632,6 @@
                     document.querySelectorAll('.t-name, #scheduleTable th').forEach(el => el.setAttribute('contenteditable', 'true'));
                     
                     document.getElementById('editBtn').innerHTML = "✅ Finish Editing & Save";
-                    document.getElementById('addTeacherBtn').style.display = "block"; 
                     alert("Editing Enabled! Any changes you make will be automatically saved.");
                     saveState();
                 } else if(pass !== null) {
@@ -486,16 +641,9 @@
                 isEditing = false;
                 document.body.classList.remove('editing-mode');
                 document.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
-                document.getElementById('editBtn').innerHTML = "🔒 Edit (Requires Password)";
-                document.getElementById('addTeacherBtn').style.display = "none"; 
-                saveState(); // Final save when closing edit mode
+                document.getElementById('editBtn').innerHTML = "🔒 Edit Mode (Password)";
+                saveState(); 
             }
-        }
-
-        // === Dynamic Row Management ===
-        function updateLunchRowSpan() {
-            let lunchCell = document.getElementById('lunchCell');
-            if (lunchCell) lunchCell.rowSpan = document.querySelectorAll('#tableBody tr').length || 1;
         }
 
         function addTeacherRow() {
@@ -524,7 +672,6 @@
             if (confirm("Are you sure you want to delete this row?")) {
                 let row = button.closest('tr');
                 let lunchCell = row.querySelector('.lunch-col');
-                // Shift lunch cell to next row if it exists in the row being deleted
                 if (lunchCell && row.nextElementSibling) {
                     row.nextElementSibling.insertBefore(lunchCell, row.nextElementSibling.children[6]);
                 }
@@ -533,25 +680,41 @@
                 saveState();
             }
         }
+        
+        function updateLunchRowSpan() {
+            let lunchCell = document.getElementById('lunchCell');
+            if (lunchCell) lunchCell.rowSpan = document.querySelectorAll('#tableBody tr').length || 1;
+        }
 
         // === Auto-Save (LocalStorage) & Keyboard Shortcuts ===
         let historyStack = [];
         let historyIndex = -1;
         
-        // Save Default HTML for Reset Feature
         const defaultTableHTML = document.getElementById('tableBody').innerHTML; 
         const defaultHeadHTML = document.querySelector('#scheduleTable thead').innerHTML;
 
         function saveState() {
+            let cloneBody = document.getElementById('tableBody').cloneNode(true);
+            cloneBody.querySelectorAll('tr').forEach(tr => tr.style.display = "");
+            
+            let cloneLunch = cloneBody.querySelector('.lunch-col');
+            if(cloneLunch) {
+                cloneLunch.style.display = "";
+                let totalRows = cloneBody.querySelectorAll('tr').length;
+                cloneLunch.rowSpan = totalRows > 0 ? totalRows : 1;
+                if(cloneBody.firstElementChild && !cloneBody.firstElementChild.contains(cloneLunch)) {
+                    let ref = cloneBody.firstElementChild.children[6];
+                    if(ref) cloneBody.firstElementChild.insertBefore(cloneLunch, ref);
+                }
+            }
+
             const state = JSON.stringify({
                 thead: document.querySelector('#scheduleTable thead').innerHTML,
-                tbody: document.getElementById('tableBody').innerHTML
+                tbody: cloneBody.innerHTML
             });
             
-            // Save to Local Storage so data is not lost on reload
             localStorage.setItem('savedTimetableData', state);
 
-            // Save to Undo/Redo history stack
             if (historyIndex === historyStack.length - 1) {
                 historyStack.push(state);
                 historyIndex++;
@@ -572,6 +735,7 @@
                     el.setAttribute('contenteditable', 'true');
                 });
             }
+            document.getElementById('searchInput').value = "";
         }
 
         function undo() { if (historyIndex > 0) { restoreState(historyStack[--historyIndex]); localStorage.setItem('savedTimetableData', historyStack[historyIndex]); } }
@@ -582,15 +746,15 @@
                 localStorage.removeItem('savedTimetableData');
                 document.querySelector('#scheduleTable thead').innerHTML = defaultHeadHTML;
                 document.getElementById('tableBody').innerHTML = defaultTableHTML;
+                document.getElementById('searchInput').value = "";
                 saveState();
             }
         }
 
         document.getElementById('scheduleTable').addEventListener('input', () => saveState());
 
-        // === Initialization (Load Saved Data) ===
+        // === Initialization ===
         window.onload = () => {
-            // Load saved Timetable Data
             let savedData = localStorage.getItem('savedTimetableData');
             if(savedData) {
                 restoreState(savedData);
@@ -600,7 +764,6 @@
                 saveState();
             }
 
-            // Load saved Profile Header
             let savedTitle = localStorage.getItem('schoolTitle');
             if(savedTitle) document.getElementById('schoolNameDisplay').innerText = savedTitle;
             
@@ -611,11 +774,10 @@
                 logoImg.style.display = "block";
             }
 
-            // Load saved Theme
             if(localStorage.getItem('darkMode') === 'true') toggleTheme();
         };
 
-        // === PDF Output ===
+        // === Main Table PDF Output ===
         function downloadPDF() {
             const container = document.createElement('div');
             container.appendChild(document.getElementById('pdfHeader').cloneNode(true));
@@ -623,9 +785,10 @@
             container.querySelectorAll('.delete-btn').forEach(btn => btn.remove());
             container.style.padding = "20px";
             container.style.backgroundColor = "#fff";
+            container.style.color = "#000";
             
             html2pdf().set({
-                margin: 0.2, filename: 'School_Timetable.pdf',
+                margin: 0.2, filename: 'Main_School_Timetable.pdf',
                 image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 3, useCORS: true }, 
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
@@ -634,6 +797,12 @@
 
         // Global Shortcuts Listener
         document.addEventListener('keydown', function(e) {
+            // Avoid triggering shortcuts if typing inside an editable field
+            if (e.target.isContentEditable || e.target.tagName === 'INPUT') {
+                // Allow Ctrl+Z and Ctrl+Y inside inputs natively
+                if ((e.ctrlKey && e.key === 'z') || (e.ctrlKey && e.key === 'y')) return; 
+            }
+
             if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
             if (e.ctrlKey && e.key === 'p') { e.preventDefault(); window.print(); }
             if (e.ctrlKey && e.key === 's') { e.preventDefault(); downloadPDF(); }
