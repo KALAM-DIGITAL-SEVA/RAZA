@@ -43,7 +43,7 @@
         
         .search-bar {
             padding: 10px 15px; border: 1px solid #bdc3c7; border-radius: 8px;
-            font-size: 1em; width: 220px; outline: none; cursor: pointer;
+            font-size: 0.95em; width: 210px; outline: none; cursor: pointer;
             transition: border-color 0.3s;
         }
         .search-bar:focus { border-color: #2980b9; box-shadow: 0 0 5px rgba(41, 128, 185, 0.2); }
@@ -120,7 +120,7 @@
         .btn-reset { background: linear-gradient(135deg, #e74c3c, #c0392b); display: none; } 
         body.editing-mode .btn-reset, body.editing-mode .btn-add { display: flex; }
 
-        /* === NEW: Class Timetable Modal (Portrait View) === */
+        /* === Modals (Class & Teacher Timetables) === */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 2000;
@@ -150,19 +150,29 @@
             @page { margin: 10mm; }
             
             /* If printing normal table, force Landscape */
-            body:not(.printing-modal) { @page { size: landscape; } }
-            body:not(.printing-modal) .navbar, body:not(.printing-modal) .bottom-controls, body:not(.printing-modal) .delete-btn { display: none !important; }
-            body:not(.printing-modal) .table-container { box-shadow: none; padding: 0; }
+            body:not(.printing-modal):not(.printing-teacher-modal) { @page { size: landscape; } }
+            body:not(.printing-modal):not(.printing-teacher-modal) .navbar, 
+            body:not(.printing-modal):not(.printing-teacher-modal) .bottom-controls, 
+            body:not(.printing-modal):not(.printing-teacher-modal) .delete-btn { display: none !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) .table-container { box-shadow: none; padding: 0; }
             
-            /* If printing Modal, force Portrait */
+            /* If printing Class Modal */
             body.printing-modal { @page { size: portrait; } }
             body.printing-modal > * { display: none !important; }
-            body.printing-modal .modal-overlay, body.printing-modal .modal-overlay * { display: block !important; visibility: visible; }
-            body.printing-modal .modal-overlay { 
-                position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; 
-            }
+            body.printing-modal .modal-overlay#classTimetableModal, 
+            body.printing-modal .modal-overlay#classTimetableModal * { display: block !important; visibility: visible; }
+            body.printing-modal .modal-overlay#classTimetableModal { position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; }
             body.printing-modal .modal-content { box-shadow: none; border: none; max-width: 100%; padding: 0; }
             body.printing-modal .modal-actions, body.printing-modal .close-modal-btn { display: none !important; }
+
+            /* If printing Teacher Modal */
+            body.printing-teacher-modal { @page { size: portrait; } }
+            body.printing-teacher-modal > * { display: none !important; }
+            body.printing-teacher-modal .modal-overlay#teacherTimetableModal, 
+            body.printing-teacher-modal .modal-overlay#teacherTimetableModal * { display: block !important; visibility: visible; }
+            body.printing-teacher-modal .modal-overlay#teacherTimetableModal { position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; }
+            body.printing-teacher-modal .modal-content { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+            body.printing-teacher-modal .modal-actions, body.printing-teacher-modal .close-modal-btn { display: none !important; }
             
             /* Generic Print Resets */
             th { background-color: #eee !important; color: #000 !important; }
@@ -171,7 +181,7 @@
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         
-        @media (max-width: 800px) {
+        @media (max-width: 1000px) {
             .navbar-right { justify-content: flex-start; }
             .search-bar { width: 100%; margin-bottom: 5px; }
         }
@@ -184,10 +194,10 @@
     <nav class="navbar">
         <div class="navbar-title">School System</div>
         <div class="navbar-right">
-            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search Teacher..." onkeyup="searchTable()">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search Table..." onkeyup="searchTable()">
             
             <select id="classFilter" class="search-bar" onchange="generateClassTimetable(this)" title="Get Timetable for a Specific Class">
-                <option value="ALL">📋 Generate Class Timetable</option>
+                <option value="ALL">📋 Select Class</option>
                 <option value="N\.C\.R|NCR">Class N.C.R</option>
                 <option value="U\.K\.G|UKG">Class U.K.G</option>
                 <option value="(^|\D)1(\D|$)">Class 1</option>
@@ -203,6 +213,10 @@
                 <option value="(^|\D)11(\D|$)">Class 11</option>
                 <option value="(^|\D)12(\D|$)">Class 12</option>
             </select>
+
+            <select id="teacherDropdown" class="search-bar" onchange="generateTeacherTimetable(this)" title="Get Timetable for a Specific Teacher">
+                <option value="ALL">🧑‍🏫 Select Teacher</option>
+                </select>
 
             <div class="menu-icon" onclick="toggleMenu()">☰</div>
         </div>
@@ -405,7 +419,7 @@
                     </tr>
                 </thead>
                 <tbody id="classTableBody">
-                    </tbody>
+                </tbody>
             </table>
 
             <div class="modal-actions">
@@ -415,16 +429,42 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="teacherTimetableModal">
+        <div class="modal-content" id="teacherPdfArea">
+            <button class="close-modal-btn" onclick="closeTeacherModal()">✖</button>
+            
+            <div class="modal-header">
+                <h2 id="modalTeacherNameTitle">Teacher Timetable</h2>
+                <p id="modalSchoolNameTeacher">Session 2026-2027</p>
+            </div>
+
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th>Time / Period</th>
+                        <th>Class & Subject Details</th>
+                    </tr>
+                </thead>
+                <tbody id="teacherTableBody">
+                </tbody>
+            </table>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-print" onclick="printTeacherModal()">🖨️ Print (Portrait)</button>
+                <button class="action-btn btn-download" onclick="downloadTeacherPDF()">⬇️ Download PDF</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // === Menu Navigation ===
+        // === Menu Navigation & Modal Closing ===
         function toggleMenu() { document.getElementById("dropdownMenu").classList.toggle("show"); }
         window.onclick = function(event) {
             if (!event.target.matches('.menu-icon') && !event.target.closest('.dropdown-menu')) {
                 document.querySelectorAll(".dropdown-menu").forEach(menu => menu.classList.remove('show'));
             }
-            if (event.target == document.getElementById('classTimetableModal')) {
-                closeClassModal();
-            }
+            if (event.target == document.getElementById('classTimetableModal')) closeClassModal();
+            if (event.target == document.getElementById('teacherTimetableModal')) closeTeacherModal();
         }
 
         // === Profile Setup ===
@@ -435,7 +475,6 @@
                 document.getElementById('schoolNameDisplay').innerText = newName;
                 localStorage.setItem('schoolTitle', newName);
             }
-            
             alert("Now, please select your School Logo image.");
             document.getElementById('logoUpload').click();
             toggleMenu(); 
@@ -465,7 +504,24 @@
             toggleMenu();
         }
 
-        // === Normal Search (Teacher Search in Main Table) ===
+        // === Populate Teacher Dropdown Dynamically ===
+        function populateTeacherDropdown() {
+            let dropdown = document.getElementById('teacherDropdown');
+            dropdown.innerHTML = '<option value="ALL">🧑‍🏫 Select Teacher</option>'; // Reset
+            
+            let teacherNames = document.querySelectorAll('.t-name');
+            teacherNames.forEach(span => {
+                let name = span.innerText.trim();
+                if (name && name !== "New Teacher") {
+                    let option = document.createElement('option');
+                    option.value = name;
+                    option.innerText = name;
+                    dropdown.appendChild(option);
+                }
+            });
+        }
+
+        // === Normal Search (Main Table) ===
         function searchTable() {
             let filter = document.getElementById('searchInput').value.toLowerCase();
             let rows = document.querySelectorAll('#tableBody tr');
@@ -498,33 +554,27 @@
             }
         }
 
-        // === NEW: Generate Class Timetable (Without Modifying Main Table) ===
+        // === Generate Class Timetable Modal ===
         function generateClassTimetable(selectElement) {
             if (selectElement.value === "ALL") return;
 
             let regexValue = selectElement.value;
             let className = selectElement.options[selectElement.selectedIndex].text;
             let regex = new RegExp(regexValue, 'i');
-
             let rows = document.querySelectorAll('#tableBody tr');
             let headers = Array.from(document.querySelectorAll('#scheduleTable th')).map(th => th.innerText);
-            
             let classSchedule = [];
 
-            // Parse Main Table
             rows.forEach((row, rowIndex) => {
                 let cells = row.querySelectorAll('td');
                 let teacherName = row.querySelector('.t-name').innerText;
 
                 cells.forEach((cell, cellIndex) => {
-                    if (cellIndex === 0) return; // Skip Teacher Name column
-                    if (cell.classList.contains('lunch-col')) return; // Skip original lunch
+                    if (cellIndex === 0) return; 
+                    if (cell.classList.contains('lunch-col')) return; 
 
-                    // Calculate correct visual column due to Lunch rowspan affecting DOM indexing
                     let visualCol = cellIndex;
-                    if (rowIndex > 0 && cellIndex >= 6) {
-                        visualCol = cellIndex + 1; 
-                    }
+                    if (rowIndex > 0 && cellIndex >= 6) visualCol = cellIndex + 1; 
 
                     let text = cell.innerText;
                     if (regex.test(text)) {
@@ -538,78 +588,111 @@
                 });
             });
 
-            // Automatically Insert Lunch Period at Index 6
-            classSchedule.push({
-                timeIndex: 6,
-                time: headers[6],
-                teacher: "---",
-                subject: "LUNCH BREAK"
-            });
-
-            // Sort by Time
+            classSchedule.push({ timeIndex: 6, time: headers[6], teacher: "---", subject: "LUNCH BREAK" });
             classSchedule.sort((a, b) => a.timeIndex - b.timeIndex);
 
-            // Render to Modal Table
             let tbody = document.getElementById('classTableBody');
             tbody.innerHTML = "";
 
-            if (classSchedule.length === 1) { // Only Lunch exists
+            if (classSchedule.length === 1) { 
                 tbody.innerHTML = "<tr><td colspan='3' style='padding: 20px;'>No classes scheduled for this class.</td></tr>";
             } else {
                 classSchedule.forEach(item => {
                     let tr = document.createElement('tr');
                     if (item.subject === "LUNCH BREAK") {
-                        tr.innerHTML = `
-                            <td><strong>${item.time}</strong></td>
-                            <td colspan="2" style="background:#e74c3c; color:white; font-weight:bold; letter-spacing:2px;">LUNCH BREAK</td>
-                        `;
+                        tr.innerHTML = `<td><strong>${item.time}</strong></td><td colspan="2" style="background:#e74c3c; color:white; font-weight:bold; letter-spacing:2px;">LUNCH BREAK</td>`;
                     } else {
-                        tr.innerHTML = `
-                            <td><strong>${item.time}</strong></td>
-                            <td class="m-subject">${item.subject}</td>
-                            <td class="m-teacher">${item.teacher}</td>
-                        `;
+                        tr.innerHTML = `<td><strong>${item.time}</strong></td><td class="m-subject">${item.subject}</td><td class="m-teacher">${item.teacher}</td>`;
                     }
                     tbody.appendChild(tr);
                 });
             }
 
-            // Set Header and Show Modal
             document.getElementById('modalClassName').innerText = "Timetable: " + className;
             let schoolName = document.getElementById('schoolNameDisplay').innerText;
             document.getElementById('modalSchoolName').innerText = schoolName + " | Session 2026-2027";
-            
             document.getElementById('classTimetableModal').style.display = "flex";
-            
-            // Reset dropdown to ALL immediately so user can select the same class again later if needed
             selectElement.value = "ALL"; 
         }
 
-        function closeClassModal() {
-            document.getElementById('classTimetableModal').style.display = "none";
-        }
-
-        // === Modal Print & PDF Logic ===
+        function closeClassModal() { document.getElementById('classTimetableModal').style.display = "none"; }
         function printClassModal() {
             document.body.classList.add('printing-modal');
             window.print();
             setTimeout(() => { document.body.classList.remove('printing-modal'); }, 500);
         }
-
         function downloadClassPDF() {
             const container = document.getElementById('classPdfArea').cloneNode(true);
             container.querySelector('.close-modal-btn').remove();
             container.querySelector('.modal-actions').remove();
-            container.style.padding = "20px";
-            container.style.backgroundColor = "#fff";
-            container.style.color = "#000"; // Ensure text is black for PDF
-            
-            html2pdf().set({
-                margin: 0.5, filename: document.getElementById('modalClassName').innerText + '.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 3, useCORS: true }, 
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } // PORTRAIT SIZE
-            }).from(container).save();
+            container.style.padding = "20px"; container.style.backgroundColor = "#fff"; container.style.color = "#000"; 
+            html2pdf().set({ margin: 0.5, filename: document.getElementById('modalClassName').innerText + '.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(container).save();
+        }
+
+        // === NEW: Generate Teacher Timetable Modal ===
+        function generateTeacherTimetable(selectElement) {
+            if (selectElement.value === "ALL") return;
+
+            let teacherName = selectElement.value;
+            let rows = document.querySelectorAll('#tableBody tr');
+            let foundRow = null;
+
+            rows.forEach(row => {
+                let tName = row.querySelector('.t-name').innerText.trim();
+                if (tName === teacherName) foundRow = row;
+            });
+
+            if (foundRow) {
+                // Extract all period cells strictly (ignoring name and lunch col)
+                let periods = foundRow.querySelectorAll('td:not(.teacher-name):not(.lunch-col)');
+                
+                let schedule = [
+                    { time: "8:00 - 8:40", details: periods[0] ? periods[0].innerText.trim() : "-" },
+                    { time: "8:40 - 9:20", details: periods[1] ? periods[1].innerText.trim() : "-" },
+                    { time: "9:20 - 9:55", details: periods[2] ? periods[2].innerText.trim() : "-" },
+                    { time: "9:55 - 10:30", details: periods[3] ? periods[3].innerText.trim() : "-" },
+                    { time: "10:30 - 11:10", details: periods[4] ? periods[4].innerText.trim() : "-" },
+                    { time: "11:10 - 11:35", details: "LUNCH BREAK", isLunch: true },
+                    { time: "11:35 - 12:10", details: periods[5] ? periods[5].innerText.trim() : "-" },
+                    { time: "12:10 - 12:45", details: periods[6] ? periods[6].innerText.trim() : "-" }
+                ];
+
+                let tbody = document.getElementById('teacherTableBody');
+                tbody.innerHTML = "";
+
+                schedule.forEach(item => {
+                    let tr = document.createElement('tr');
+                    if (item.isLunch) {
+                        tr.innerHTML = `<td><strong>${item.time}</strong></td><td style="background:#e74c3c; color:white; font-weight:bold; letter-spacing:2px;">${item.details}</td>`;
+                    } else {
+                        // Replace newlines with breaks for better formatting
+                        let formattedDetails = item.details.replace(/\n/g, ' <br> ');
+                        tr.innerHTML = `<td><strong>${item.time}</strong></td><td class="m-subject">${formattedDetails}</td>`;
+                    }
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('modalTeacherNameTitle').innerText = "Timetable: Teacher " + teacherName;
+                let schoolName = document.getElementById('schoolNameDisplay').innerText;
+                document.getElementById('modalSchoolNameTeacher').innerText = schoolName + " | Session 2026-2027";
+                
+                document.getElementById('teacherTimetableModal').style.display = "flex";
+            }
+            selectElement.value = "ALL"; 
+        }
+
+        function closeTeacherModal() { document.getElementById('teacherTimetableModal').style.display = "none"; }
+        function printTeacherModal() {
+            document.body.classList.add('printing-teacher-modal');
+            window.print();
+            setTimeout(() => { document.body.classList.remove('printing-teacher-modal'); }, 500);
+        }
+        function downloadTeacherPDF() {
+            const container = document.getElementById('teacherPdfArea').cloneNode(true);
+            container.querySelector('.close-modal-btn').remove();
+            container.querySelector('.modal-actions').remove();
+            container.style.padding = "20px"; container.style.backgroundColor = "#fff"; container.style.color = "#000"; 
+            html2pdf().set({ margin: 0.5, filename: document.getElementById('modalTeacherNameTitle').innerText + '.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(container).save();
         }
 
         // === Editing Logic (Main Table) ===
@@ -723,6 +806,7 @@
                 historyStack.push(state);
                 historyIndex++;
             }
+            populateTeacherDropdown(); // Update dropdown names on save
         }
 
         function restoreState(stateStr) {
@@ -736,6 +820,7 @@
                 });
             }
             document.getElementById('searchInput').value = "";
+            populateTeacherDropdown(); // Update dropdown names after restoring
         }
 
         function undo() { if (historyIndex > 0) { restoreState(historyStack[--historyIndex]); localStorage.setItem('savedTimetableData', historyStack[historyIndex]); } }
@@ -775,6 +860,8 @@
             }
 
             if(localStorage.getItem('darkMode') === 'true') toggleTheme();
+            
+            populateTeacherDropdown(); // Populate dropdown initially
         };
 
         // === Main Table PDF Output ===
@@ -797,9 +884,7 @@
 
         // Global Shortcuts Listener
         document.addEventListener('keydown', function(e) {
-            // Avoid triggering shortcuts if typing inside an editable field
             if (e.target.isContentEditable || e.target.tagName === 'INPUT') {
-                // Allow Ctrl+Z and Ctrl+Y inside inputs natively
                 if ((e.ctrlKey && e.key === 'z') || (e.ctrlKey && e.key === 'y')) return; 
             }
 
