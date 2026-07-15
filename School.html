@@ -120,6 +120,20 @@
         .btn-reset { background: linear-gradient(135deg, #e74c3c, #c0392b); display: none; } 
         body.editing-mode .btn-reset, body.editing-mode .btn-add { display: flex; }
 
+        /* === Loading Status Banner === */
+        #pdfLoadingBanner {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(44, 62, 80, 0.95); color: #fff; z-index: 100000;
+            flex-direction: column; justify-content: center; align-items: center;
+            font-size: 1.5em; font-weight: bold; gap: 15px;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         /* === Modals (Class & Teacher Timetables) === */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -127,7 +141,7 @@
             justify-content: center; align-items: center; padding: 20px;
         }
         .modal-content {
-            background: #fff; border-radius: 12px; width: 100%; max-width: 600px;
+            background: #fff; border-radius: 12px; width: 100%; max-width: 650px;
             max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             position: relative; padding: 30px;
         }
@@ -135,8 +149,8 @@
         .modal-header h2 { color: #2c3e50; font-size: 2em; margin-bottom: 5px; text-transform: uppercase; }
         .modal-header p { color: #7f8c8d; }
         
-        .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; min-width: auto; }
-        .modal-table th, .modal-table td { border: 1px solid #bdc3c7; padding: 12px; text-align: center; }
+        .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; min-width: auto; table-layout: auto; word-wrap: break-word; }
+        .modal-table th, .modal-table td { border: 1px solid #bdc3c7; padding: 12px; text-align: center; white-space: normal; word-break: break-word; }
         .modal-table th { background-color: #2980b9; color: white; }
         .modal-table td.m-subject { font-weight: bold; color: #2c3e50; }
         .modal-table td.m-teacher { color: #d35400; font-weight: bold; }
@@ -145,40 +159,42 @@
         .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: #7f8c8d; border:none; background:none; transition:0.3s;}
         .close-modal-btn:hover { color: #e74c3c; transform: scale(1.1);}
 
-        /* === Print / Download CSS === */
+        /* ========================================================= */
+        /* === ADVANCED NATIVE PRINT SYSTEM                      === */
+        /* ========================================================= */
         @media print {
-            @page { margin: 10mm; }
-            
-            /* If printing normal table, force Landscape */
-            body:not(.printing-modal):not(.printing-teacher-modal) { @page { size: landscape; } }
-            body:not(.printing-modal):not(.printing-teacher-modal) .navbar, 
-            body:not(.printing-modal):not(.printing-teacher-modal) .bottom-controls, 
-            body:not(.printing-modal):not(.printing-teacher-modal) .delete-btn { display: none !important; }
-            body:not(.printing-modal):not(.printing-teacher-modal) .table-container { box-shadow: none; padding: 0; }
-            
-            /* If printing Class Modal */
-            body.printing-modal { @page { size: portrait; } }
-            body.printing-modal > * { display: none !important; }
-            body.printing-modal .modal-overlay#classTimetableModal, 
-            body.printing-modal .modal-overlay#classTimetableModal * { display: block !important; visibility: visible; }
-            body.printing-modal .modal-overlay#classTimetableModal { position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; }
-            body.printing-modal .modal-content { box-shadow: none; border: none; max-width: 100%; padding: 0; }
-            body.printing-modal .modal-actions, body.printing-modal .close-modal-btn { display: none !important; }
-
-            /* If printing Teacher Modal */
-            body.printing-teacher-modal { @page { size: portrait; } }
-            body.printing-teacher-modal > * { display: none !important; }
-            body.printing-teacher-modal .modal-overlay#teacherTimetableModal, 
-            body.printing-teacher-modal .modal-overlay#teacherTimetableModal * { display: block !important; visibility: visible; }
-            body.printing-teacher-modal .modal-overlay#teacherTimetableModal { position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; }
-            body.printing-teacher-modal .modal-content { box-shadow: none; border: none; max-width: 100%; padding: 0; }
-            body.printing-teacher-modal .modal-actions, body.printing-teacher-modal .close-modal-btn { display: none !important; }
-            
-            /* Generic Print Resets */
-            th { background-color: #eee !important; color: #000 !important; }
-            th, td { border: 2px solid #000 !important; color: #000 !important; }
-            .lunch-col { background-color: #ddd !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            /* size: auto; allows the user to change orientation (Portrait/Landscape) in the Print menu.
+               By default, browsers open it in Portrait, which matches the requirement. */
+            @page { size: auto; margin: 8mm; }
+            body { background: white !important; color: black !important; padding: 0 !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            /* Hide everything unnecessary */
+            .navbar, .bottom-controls, .delete-btn, #pdfLoadingBanner { display: none !important; }
+            
+            /* Main Table Print Setting - Flexible width so it fits whatever orientation user picks */
+            body:not(.printing-modal):not(.printing-teacher-modal) .container { padding: 0 !important; max-width: 100% !important; width: 100% !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) .table-container { box-shadow: none !important; padding: 0 !important; border: none !important; overflow: visible !important; width: 100% !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) table { width: 100% !important; min-width: 100% !important; margin: 0 auto !important; table-layout: auto !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) th, 
+            body:not(.printing-modal):not(.printing-teacher-modal) td { padding: 6px 4px !important; font-size: 10.5px !important; word-break: break-word !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) th { font-size: 11px !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) .header h1 { font-size: 1.8em !important; }
+            body:not(.printing-modal):not(.printing-teacher-modal) .header p { font-size: 0.9em !important; }
+            
+            /* Modals Print Setting (Class & Teacher Timetable) */
+            body.printing-modal > *:not(#classTimetableModal), 
+            body.printing-teacher-modal > *:not(#teacherTimetableModal) { display: none !important; }
+            
+            body.printing-modal .modal-overlay#classTimetableModal, 
+            body.printing-teacher-modal .modal-overlay#teacherTimetableModal { 
+                display: block !important; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; background: none; padding: 0; 
+            }
+            
+            .modal-content { box-shadow: none !important; border: none !important; max-width: 100% !important; width: 100% !important; padding: 0 !important; overflow: visible !important;}
+            .modal-actions, .close-modal-btn { display: none !important; }
+            .modal-table { width: 100% !important; margin: 0 auto !important; }
+            .modal-table th, .modal-table td { padding: 10px 8px !important; font-size: 13px !important; }
         }
         
         @media (max-width: 1000px) {
@@ -190,6 +206,12 @@
 <body>
 
     <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="updateLogo(event)">
+
+    <div id="pdfLoadingBanner">
+        <div class="spinner"></div>
+        <div>⏳ PDF फाइल बन रही है, कृपया 2 सेकंड रुकें...</div>
+        <div style="font-size: 0.5em; color: #bdc3c7;">(Zero Blank Page Protection Active)</div>
+    </div>
 
     <nav class="navbar">
         <div class="navbar-title">School System</div>
@@ -216,7 +238,7 @@
 
             <select id="teacherDropdown" class="search-bar" onchange="generateTeacherTimetable(this)" title="Get Timetable for a Specific Teacher">
                 <option value="ALL">🧑‍🏫 Select Teacher</option>
-                </select>
+            </select>
 
             <div class="menu-icon" onclick="toggleMenu()">☰</div>
         </div>
@@ -406,6 +428,7 @@
             <button class="close-modal-btn" onclick="closeClassModal()">✖</button>
             
             <div class="modal-header">
+                <img id="classModalLogo" class="school-logo" src="" alt="School Logo" style="display:none; margin: 0 auto 10px auto; max-width:80px; max-height:80px; border:2px solid #2980b9; border-radius:50%;">
                 <h2 id="modalClassName">Class Timetable</h2>
                 <p id="modalSchoolName">Session 2026-2027</p>
             </div>
@@ -423,7 +446,7 @@
             </table>
 
             <div class="modal-actions">
-                <button class="action-btn btn-print" onclick="printClassModal()">🖨️ Print (Portrait)</button>
+                <button class="action-btn btn-print" onclick="printClassModal()">🖨️ Print</button>
                 <button class="action-btn btn-download" onclick="downloadClassPDF()">⬇️ Download PDF</button>
             </div>
         </div>
@@ -434,6 +457,7 @@
             <button class="close-modal-btn" onclick="closeTeacherModal()">✖</button>
             
             <div class="modal-header">
+                <img id="teacherModalLogo" class="school-logo" src="" alt="School Logo" style="display:none; margin: 0 auto 10px auto; max-width:80px; max-height:80px; border:2px solid #2980b9; border-radius:50%;">
                 <h2 id="modalTeacherNameTitle">Teacher Timetable</h2>
                 <p id="modalSchoolNameTeacher">Session 2026-2027</p>
             </div>
@@ -450,7 +474,7 @@
             </table>
 
             <div class="modal-actions">
-                <button class="action-btn btn-print" onclick="printTeacherModal()">🖨️ Print (Portrait)</button>
+                <button class="action-btn btn-print" onclick="printTeacherModal()">🖨️ Print</button>
                 <button class="action-btn btn-download" onclick="downloadTeacherPDF()">⬇️ Download PDF</button>
             </div>
         </div>
@@ -485,10 +509,14 @@
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function(e) {
-                    let logoImg = document.getElementById('schoolLogo');
-                    logoImg.src = e.target.result;
-                    logoImg.style.display = "block"; 
-                    localStorage.setItem('schoolLogo', e.target.result);
+                    let logoUrl = e.target.result;
+                    document.getElementById('schoolLogo').src = logoUrl;
+                    document.getElementById('schoolLogo').style.display = "block"; 
+                    
+                    document.getElementById('classModalLogo').src = logoUrl;
+                    document.getElementById('teacherModalLogo').src = logoUrl;
+                    
+                    localStorage.setItem('schoolLogo', logoUrl);
                 }
                 reader.readAsDataURL(file);
             }
@@ -611,25 +639,26 @@
             document.getElementById('modalClassName').innerText = "Timetable: " + className;
             let schoolName = document.getElementById('schoolNameDisplay').innerText;
             document.getElementById('modalSchoolName').innerText = schoolName + " | Session 2026-2027";
+            
+            let logoSrc = document.getElementById('schoolLogo').src;
+            if(logoSrc && !logoSrc.endsWith("index.html")) {
+                document.getElementById('classModalLogo').style.display = "block";
+                document.getElementById('classModalLogo').src = logoSrc;
+            }
+
             document.getElementById('classTimetableModal').style.display = "flex";
             selectElement.value = "ALL"; 
         }
 
         function closeClassModal() { document.getElementById('classTimetableModal').style.display = "none"; }
+        
         function printClassModal() {
             document.body.classList.add('printing-modal');
             window.print();
             setTimeout(() => { document.body.classList.remove('printing-modal'); }, 500);
         }
-        function downloadClassPDF() {
-            const container = document.getElementById('classPdfArea').cloneNode(true);
-            container.querySelector('.close-modal-btn').remove();
-            container.querySelector('.modal-actions').remove();
-            container.style.padding = "20px"; container.style.backgroundColor = "#fff"; container.style.color = "#000"; 
-            html2pdf().set({ margin: 0.5, filename: document.getElementById('modalClassName').innerText + '.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(container).save();
-        }
 
-        // === NEW: Generate Teacher Timetable Modal ===
+        // === Generate Teacher Timetable Modal ===
         function generateTeacherTimetable(selectElement) {
             if (selectElement.value === "ALL") return;
 
@@ -643,7 +672,6 @@
             });
 
             if (foundRow) {
-                // Extract all period cells strictly (ignoring name and lunch col)
                 let periods = foundRow.querySelectorAll('td:not(.teacher-name):not(.lunch-col)');
                 
                 let schedule = [
@@ -665,7 +693,6 @@
                     if (item.isLunch) {
                         tr.innerHTML = `<td><strong>${item.time}</strong></td><td style="background:#e74c3c; color:white; font-weight:bold; letter-spacing:2px;">${item.details}</td>`;
                     } else {
-                        // Replace newlines with breaks for better formatting
                         let formattedDetails = item.details.replace(/\n/g, ' <br> ');
                         tr.innerHTML = `<td><strong>${item.time}</strong></td><td class="m-subject">${formattedDetails}</td>`;
                     }
@@ -676,26 +703,160 @@
                 let schoolName = document.getElementById('schoolNameDisplay').innerText;
                 document.getElementById('modalSchoolNameTeacher').innerText = schoolName + " | Session 2026-2027";
                 
+                let logoSrc = document.getElementById('schoolLogo').src;
+                if(logoSrc && !logoSrc.endsWith("index.html")) {
+                    document.getElementById('teacherModalLogo').style.display = "block";
+                    document.getElementById('teacherModalLogo').src = logoSrc;
+                }
+
                 document.getElementById('teacherTimetableModal').style.display = "flex";
             }
             selectElement.value = "ALL"; 
         }
 
         function closeTeacherModal() { document.getElementById('teacherTimetableModal').style.display = "none"; }
+        
         function printTeacherModal() {
             document.body.classList.add('printing-teacher-modal');
             window.print();
             setTimeout(() => { document.body.classList.remove('printing-teacher-modal'); }, 500);
         }
-        function downloadTeacherPDF() {
-            const container = document.getElementById('teacherPdfArea').cloneNode(true);
-            container.querySelector('.close-modal-btn').remove();
-            container.querySelector('.modal-actions').remove();
-            container.style.padding = "20px"; container.style.backgroundColor = "#fff"; container.style.color = "#000"; 
-            html2pdf().set({ margin: 0.5, filename: document.getElementById('modalTeacherNameTitle').innerText + '.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(container).save();
+
+        // =========================================================================================
+        // === PDF ENGINE ===
+        // =========================================================================================
+        function generateCleanPDF(elementToClone, filename, orientation) {
+            const banner = document.getElementById('pdfLoadingBanner');
+            banner.style.display = 'flex';
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.top = '0';
+            tempDiv.style.left = '0';
+            tempDiv.style.width = '100vw';
+            tempDiv.style.height = '100vh';
+            tempDiv.style.zIndex = '99999';
+            tempDiv.style.backgroundColor = '#ffffff';
+            tempDiv.style.overflow = 'auto';
+            tempDiv.style.display = 'flex';
+            tempDiv.style.justifyContent = 'center';
+            tempDiv.style.alignItems = 'flex-start';
+            tempDiv.style.padding = '20px';
+
+            const printContainer = document.createElement('div');
+            printContainer.style.width = orientation === 'landscape' ? '1050px' : '720px';
+            printContainer.style.backgroundColor = '#ffffff';
+            printContainer.style.color = '#000000';
+            printContainer.style.margin = '0 auto';
+            printContainer.style.padding = '15px';
+            printContainer.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+            const clone = elementToClone.cloneNode(true);
+            clone.querySelectorAll('.delete-btn, .close-modal-btn, .modal-actions, .bottom-controls').forEach(el => el.remove());
+            
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+            clone.style.boxShadow = 'none';
+            clone.style.border = 'none';
+            clone.style.width = '100%';
+            clone.style.background = '#ffffff';
+
+            clone.querySelectorAll('.modal-header, .header').forEach(hdr => {
+                hdr.style.textAlign = 'center';
+                hdr.style.margin = '0 auto 15px auto';
+                hdr.style.width = '100%';
+            });
+
+            clone.querySelectorAll('h1, h2, p, span, td, th').forEach(el => {
+                if (!el.classList.contains('lunch-col') && el.tagName !== 'TH') {
+                    el.style.color = '#000000';
+                }
+            });
+
+            clone.querySelectorAll('table').forEach(tbl => {
+                tbl.style.width = '100%';
+                tbl.style.margin = '10px auto';
+                tbl.style.borderCollapse = 'collapse';
+            });
+
+            clone.querySelectorAll('th, td').forEach(cell => {
+                cell.style.border = '1px solid #bdc3c7';
+                cell.style.padding = '10px 8px';
+                cell.style.wordBreak = 'break-word';
+                cell.style.fontSize = '14px';
+            });
+
+            clone.querySelectorAll('th').forEach(th => {
+                th.style.backgroundColor = '#2c3e50';
+                th.style.color = '#ffffff';
+                th.style.fontWeight = 'bold';
+            });
+
+            clone.querySelectorAll('.modal-table th').forEach(th => {
+                th.style.backgroundColor = '#2980b9';
+                th.style.color = '#ffffff';
+            });
+
+            clone.querySelectorAll('.lunch-col').forEach(lunch => {
+                lunch.style.backgroundColor = '#e74c3c !important';
+                lunch.style.color = '#ffffff !important';
+                lunch.style.fontWeight = 'bold';
+            });
+
+            printContainer.appendChild(clone);
+            tempDiv.appendChild(printContainer);
+            document.body.appendChild(tempDiv);
+
+            setTimeout(() => {
+                const opt = {
+                    margin: [0.3, 0.3, 0.3, 0.3],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true, 
+                        scrollX: 0, 
+                        scrollY: 0,
+                        windowWidth: document.documentElement.offsetWidth,
+                        windowHeight: document.documentElement.offsetHeight
+                    },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: orientation }
+                };
+
+                html2pdf().set(opt).from(printContainer).save().then(() => {
+                    if (document.body.contains(tempDiv)) {
+                        document.body.removeChild(tempDiv);
+                    }
+                    banner.style.display = 'none'; 
+                }).catch(err => {
+                    console.error("PDF Generate Error: ", err);
+                    if (document.body.contains(tempDiv)) {
+                        document.body.removeChild(tempDiv);
+                    }
+                    banner.style.display = 'none';
+                    alert("PDF बनने में कोई तकनीकी समस्या आई। कृपया '🖨️ Print' बटन दबाएं और वहां से 'Save as PDF' चुनें।");
+                });
+            }, 300);
         }
 
-        // === Editing Logic (Main Table) ===
+        function downloadPDF() {
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(document.getElementById('pdfHeader').cloneNode(true));
+            wrapper.appendChild(document.getElementById('pdfArea').cloneNode(true));
+            generateCleanPDF(wrapper, 'Main_School_Timetable.pdf', 'landscape');
+        }
+
+        function downloadClassPDF() {
+            const filename = document.getElementById('modalClassName').innerText.replace(/[^a-zA-Z0-9_\- ]/g, '') + '.pdf';
+            generateCleanPDF(document.getElementById('classPdfArea'), filename, 'portrait');
+        }
+
+        function downloadTeacherPDF() {
+            const filename = document.getElementById('modalTeacherNameTitle').innerText.replace(/[^a-zA-Z0-9_\- ]/g, '') + '.pdf';
+            generateCleanPDF(document.getElementById('teacherPdfArea'), filename, 'portrait');
+        }
+
+        // === Editing Logic ===
         let isEditing = false;
         const PASSWORD = "244601";
         
@@ -806,7 +967,7 @@
                 historyStack.push(state);
                 historyIndex++;
             }
-            populateTeacherDropdown(); // Update dropdown names on save
+            populateTeacherDropdown(); 
         }
 
         function restoreState(stateStr) {
@@ -820,7 +981,7 @@
                 });
             }
             document.getElementById('searchInput').value = "";
-            populateTeacherDropdown(); // Update dropdown names after restoring
+            populateTeacherDropdown(); 
         }
 
         function undo() { if (historyIndex > 0) { restoreState(historyStack[--historyIndex]); localStorage.setItem('savedTimetableData', historyStack[historyIndex]); } }
@@ -861,26 +1022,8 @@
 
             if(localStorage.getItem('darkMode') === 'true') toggleTheme();
             
-            populateTeacherDropdown(); // Populate dropdown initially
+            populateTeacherDropdown(); 
         };
-
-        // === Main Table PDF Output ===
-        function downloadPDF() {
-            const container = document.createElement('div');
-            container.appendChild(document.getElementById('pdfHeader').cloneNode(true));
-            container.appendChild(document.getElementById('pdfArea').cloneNode(true));
-            container.querySelectorAll('.delete-btn').forEach(btn => btn.remove());
-            container.style.padding = "20px";
-            container.style.backgroundColor = "#fff";
-            container.style.color = "#000";
-            
-            html2pdf().set({
-                margin: 0.2, filename: 'Main_School_Timetable.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 3, useCORS: true }, 
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-            }).from(container).save();
-        }
 
         // Global Shortcuts Listener
         document.addEventListener('keydown', function(e) {
