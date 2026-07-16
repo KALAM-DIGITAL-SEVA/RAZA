@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamCraft Pro v3.5 - Professional Question Paper Generator & Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19; /* Matched to screenshot dark theme */
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* ==========================================
+           ROBUST PRINT MEDIA STYLES (NO BLANK PAGES)
+           ========================================== */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                font-family: 'Merriweather', serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #print-area {
+                display: block !important;
+                position: relative !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10px 15px !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                box-sizing: border-box !important;
+            }
+            /* Applied ONLY to specific elements to prevent large gaps */
+            .page-break-avoid {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            * {
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-150%] opacity-0 bg-slate-800/95 backdrop-blur-md border border-slate-700 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 no-print max-w-sm w-[90%] sm:w-auto">
+        <span id="toast-icon" class="text-emerald-400 font-bold text-lg">✔</span>
+        <span id="toast-message" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <div id="app-container" class="flex-grow flex flex-col no-print">
+        
+        <header class="border-b border-slate-800/80 bg-[#101423] px-4 sm:px-6 py-3.5 sticky top-0 z-30 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-xl">
+            <div class="flex items-center justify-between w-full sm:w-auto">
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="returnToDashboard()" title="Return to Dashboard">
+                    <div class="bg-gradient-to-tr from-indigo-500 to-violet-500 p-2.5 rounded-xl shadow-lg border border-indigo-400/20 group-hover:scale-105 transition-transform duration-200">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                            ExamCraft
+                        </h1>
+                        <div class="flex items-center gap-2 mt-1 sm:mt-0">
+                            <span class="bg-indigo-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-extrabold tracking-wider shadow-sm uppercase">PRO V3.5</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider flex items-center gap-1"><span class="text-xs">📱</span> QR Enabled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-2.5 sm:pt-0 border-slate-800/60">
+                <button onclick="openLibraryModal()" class="flex-1 sm:flex-none justify-center bg-slate-900/50 hover:bg-slate-800 border border-slate-700/80 text-slate-200 px-4 py-2 rounded-xl flex items-center gap-2 transition duration-200 shadow-sm group">
+                    <span class="text-lg group-hover:scale-110 transition duration-200">📚</span>
+                    <span class="text-xs font-bold">Saved Library</span>
+                    <span id="total-papers-count" class="text-[11px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">0</span>
+                </button>
+
+                <button onclick="openModal()" class="flex-1 sm:flex-none justify-center bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-lg transition duration-200 flex items-center gap-1.5 shrink-0 border border-indigo-400/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <span>Create New Paper</span>
+                </button>
+            </div>
+        </header>
+
+        <main id="workspace" class="hidden flex-grow p-3 sm:p-6 max-w-5xl mx-auto w-full mb-36 sm:mb-28">
+            
+            <div class="bg-[#14192b]/90 border border-slate-800 rounded-3xl p-4 sm:p-6 mb-6 shadow-2xl relative overflow-hidden backdrop-blur-sm">
+                <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 pb-4 border-b border-slate-800/80">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+                            <h2 class="text-sm sm:text-base font-extrabold text-white">Active Exam Workspace</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 font-medium">Questions are automatically formatted in bold weight for crystal-clear print output.</p>
+                    </div>
+                    <button onclick="openModal(true)" class="w-full sm:w-auto justify-center bg-slate-800/80 hover:bg-slate-750 text-indigo-300 hover:text-white text-xs font-bold px-4 py-2 rounded-xl border border-slate-700/60 transition flex items-center gap-1.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        Edit Exam Details & Instructions
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-sm mb-5">
+                    <div class="bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/80">
+                        <span class="text-slate-400 block text-[10px] uppercase font-extrabold tracking-wider">Institution / School</span>
+                        <span id="display-school" class="font-bold text-white truncate block mt-0.5 text-xs sm:text-sm">-</span>
+                    </div>
+                    <div class="bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/80">
+                        <span class="text-slate-400 block text-[10px] uppercase font-extrabold tracking-wider">Exam Event</span>
+                        <span id="display-event" class="font-bold text-white truncate block mt-0.5 text-xs sm:text-sm">-</span>
+                    </div>
+                    <div class="bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/80">
+                        <span class="text-slate-400 block text-[10px] uppercase font-extrabold tracking-wider">Subject & Class</span>
+                        <span id="display-sub-class" class="font-bold text-indigo-300 truncate block mt-0.5 text-xs sm:text-sm">-</span>
+                    </div>
+                    <div class="bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/80">
+                        <span class="text-slate-400 block text-[10px] uppercase font-extrabold tracking-wider">Duration & Max Marks</span>
+                        <span id="display-meta" class="font-bold text-white truncate block mt-0.5 text-xs sm:text-sm">-</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-3.5 mb-4 text-xs">
+                    <span class="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">General Instructions (Printed at Top):</span>
+                    <p id="display-instructions" class="text-slate-300 italic font-medium leading-relaxed">-</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <span class="bg-slate-800/80 text-slate-300 px-3.5 py-1.5 rounded-xl border border-slate-700/50 font-semibold flex-1 sm:flex-none text-center">
+                            Sections: <strong id="stat-sections" class="text-indigo-400 font-extrabold">0</strong>
+                        </span>
+                        <span class="bg-slate-800/80 text-slate-300 px-3.5 py-1.5 rounded-xl border border-slate-700/50 font-semibold flex-1 sm:flex-none text-center">
+                            Questions: <strong id="stat-questions" class="text-indigo-400 font-extrabold">0</strong>
+                        </span>
+                    </div>
+                    <div id="marks-badge" class="w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl border font-bold flex items-center gap-2 transition-all shadow-sm">
+                        <span>Calculated Marks:</span>
+                        <strong id="stat-marks" class="text-sm font-black">0</strong>
+                        <span>/ <span id="target-marks">0</span></span>
+                        <span id="marks-status-icon" class="ml-1 font-extrabold"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sections-list" class="space-y-6">
+                </div>
+
+            <div class="mt-8">
+                <button onclick="addNewSection()" class="bg-[#14192b]/60 hover:bg-[#14192b] border-2 border-dashed border-slate-700 hover:border-indigo-500/60 text-slate-400 hover:text-indigo-300 px-6 py-5 rounded-3xl flex items-center justify-center gap-3 transition duration-200 w-full group shadow-lg">
+                    <span class="bg-slate-800 group-hover:bg-indigo-600/20 p-2 rounded-xl transition text-slate-300 group-hover:text-indigo-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    </span>
+                    <span class="font-bold text-sm">Add Another Section (MCQ, Q&A, Matching, True/False, etc.)</span>
+                </button>
+            </div>
+        </main>
+
+        <div id="placeholder-screen" class="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+            <div class="bg-[#101423] border border-[#20273c] p-8 sm:p-14 rounded-[2rem] max-w-[500px] w-full shadow-2xl backdrop-blur-md relative overflow-hidden my-auto">
+                <div class="bg-gradient-to-tr from-indigo-500 to-violet-500 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white shadow-xl shadow-indigo-600/30">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-white mb-3">No Active Question Paper</h2>
+                <p class="text-[13px] text-slate-400 mb-8 leading-relaxed font-medium">Design professional, print-ready school exams with automatic QR Code Answer Keys. Open your library to edit older papers or start a fresh one.</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="openLibraryModal()" class="w-full sm:w-auto bg-[#1b2235] hover:bg-[#232b43] text-slate-200 font-bold py-3.5 px-6 rounded-xl border border-[#2d3752] transition duration-200 flex items-center justify-center gap-2">
+                        <span class="text-lg">📚</span>
+                        <span>Open Saved Library</span>
+                    </button>
+                    <button onclick="openModal()" class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-200">
+                        Start Creating Paper
+                    </button>
+                </div>
+                <div id="resume-btn-container" class="mt-4 flex justify-center hidden">
+                    <button onclick="resumeActivePaper()" class="w-full sm:w-auto bg-slate-800/80 hover:bg-slate-700 text-indigo-400 border border-slate-700 font-bold py-3 px-6 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Resume Active Paper
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer id="control-bar" class="hidden fixed bottom-0 left-0 right-0 border-t border-slate-800/80 bg-[#101423]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-2xl z-40">
+            <div class="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Editor Font:</span>
+                <input type="range" id="font-slider" min="14" max="22" value="15" oninput="adjustFontSize(this.value)" class="w-full sm:w-32 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                <span id="font-val" class="text-xs font-black text-indigo-400 min-w-[35px]">15px</span>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+                <button onclick="savePaperToLibrary()" class="flex-1 sm:flex-none justify-center bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 font-bold px-3.5 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <span>Save to Library</span>
+                </button>
+
+                <button onclick="triggerPrint(true)" class="flex-1 sm:flex-none justify-center bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold px-3.5 py-2 rounded-xl transition text-xs flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"></path></svg>
+                    <span>Answer Key</span>
+                </button>
+
+                <button onclick="triggerPrint(false)" class="w-full sm:w-auto justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-4 py-2 rounded-xl transition text-xs shadow-lg shadow-emerald-600/25 flex items-center gap-1.5 border border-emerald-400/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2-2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    <span>Print Question Paper</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <div id="library-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-5 no-print overflow-y-auto">
+        <div class="bg-[#14192b] border border-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[85vh]">
+            <div class="border-b border-slate-800 px-5 py-4 flex justify-between items-center bg-[#101423] sticky top-0 z-10">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">📚</span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">Saved Papers Library</h3>
+                        <p class="text-xs text-slate-400 font-medium">Manage, re-edit, or print your previously generated exam papers</p>
+                    </div>
+                </div>
+                <button onclick="closeLibraryModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div id="library-list-container" class="p-4 sm:p-6 overflow-y-auto space-y-3 flex-grow">
+                </div>
+
+            <div class="border-t border-slate-800 px-5 py-3.5 bg-[#101423] flex justify-between items-center text-xs">
+                <span class="text-slate-400 font-medium">All data is securely saved in your browser's local storage.</span>
+                <button onclick="closeLibraryModal()" class="bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold px-5 py-2 rounded-xl transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="paper-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 no-print overflow-y-auto">
+        <div class="bg-[#14192b] border border-slate-800 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
+            <div class="border-b border-slate-800 px-5 py-4 flex justify-between items-center bg-[#101423]">
+                <h3 id="modal-title" class="text-base font-extrabold text-white">Create New Question Paper</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="paper-form" onsubmit="submitPaperForm(event)" class="p-5 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">School / College Name *</label>
+                    <input type="text" id="form-school" required placeholder="e.g. St. Xavier's Senior Secondary School" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-semibold">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">Exam / Assessment *</label>
+                        <select id="form-event" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-semibold">
+                            <option value="Formative Assessment - I">Formative Assessment - I</option>
+                            <option value="Formative Assessment - II">Formative Assessment - II</option>
+                            <option value="Summative Assessment - I">Summative Assessment - I</option>
+                            <option value="Summative Assessment - II">Summative Assessment - II</option>
+                            <option value="Unit Test - I">Unit Test - I</option>
+                            <option value="Half Yearly Examination">Half Yearly Examination</option>
+                            <option value="Annual Examination">Annual Examination</option>
+                            <option value="Pre-Board Examination">Pre-Board Examination</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">Subject *</label>
+                        <input type="text" id="form-subject" required placeholder="e.g. Mathematics / Science / Hindi" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-semibold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 xs:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">Class/Grade *</label>
+                        <input type="text" id="form-class" required placeholder="e.g. X-A" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">Max Marks *</label>
+                        <input type="number" id="form-marks" required placeholder="100" min="1" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">Time Duration *</label>
+                        <input type="text" id="form-duration" required placeholder="e.g. 3 Hours" class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-semibold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-300 mb-1.5 uppercase tracking-wider">General Instructions (Printed at Top)</label>
+                    <textarea id="form-instructions" rows="2" placeholder="e.g. 1. All questions are compulsory. 2. Figures to the right indicate full marks." class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-medium">All questions are compulsory. Read questions carefully before answering.</textarea>
+                </div>
+                <div class="pt-3 border-t border-slate-800 flex gap-3 justify-end">
+                    <button type="button" onclick="closeModal()" class="bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold px-5 py-2.5 rounded-xl transition text-xs">Cancel</button>
+                    <button type="submit" class="bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white font-bold px-6 py-2.5 rounded-xl transition text-xs shadow-lg border border-indigo-400/20">Save & Proceed</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="print-area" class="hidden">
+        </div>
+
+    <script>
+        // Central Application State
+        let paperState = {
+            id: null,
+            schoolName: '',
+            event: 'Formative Assessment - I',
+            subject: '',
+            className: '',
+            maxMarks: 100,
+            duration: '3 Hours',
+            instructions: 'All questions are compulsory. Read questions carefully before answering.',
+            updatedAt: '',
+            sections: []
+        };
+
+        let isEditingInfo = false;
+        let savedLibrary = [];
+
+        // Initialize App & Load Saved Library
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLibraryFromStorage();
+
+            // Load last working draft if exists
+            const activeDraft = localStorage.getItem('examcraft_pro_active');
+            if (activeDraft) {
+                try {
+                    paperState = JSON.parse(activeDraft);
+                    updateUI();
+                } catch(e) { console.log("Draft parse error."); }
+            }
+        });
+
+        // ==========================================
+        // UPDATED: Return to Dashboard Function (Only Hides UI)
+        // ==========================================
+        function returnToDashboard() {
+            // UI hide/show (Sirf dashboard dikhaye, data clear na kare)
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('control-bar').classList.add('hidden');
+            document.getElementById('placeholder-screen').classList.remove('hidden');
+            
+            // Check if there is an active paper to show "Resume" button
+            const resumeBtn = document.getElementById('resume-btn-container');
+            if (paperState && paperState.schoolName) {
+                resumeBtn.classList.remove('hidden');
+            } else {
+                resumeBtn.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // NEW: Resume Active Paper Function
+        // ==========================================
+        function resumeActivePaper() {
+            updateUI(); // Yeh seedha wapas active workspace par bhej dega
+        }
+
+        // Load Library Array from LocalStorage
+        function loadLibraryFromStorage() {
+            const saved = localStorage.getItem('examcraft_saved_library');
+            if (saved) {
+                try {
+                    savedLibrary = JSON.parse(saved);
+                } catch(e) {
+                    savedLibrary = [];
+                }
+            } else {
+                savedLibrary = [];
+            }
+            document.getElementById('total-papers-count').innerText = savedLibrary.length;
+        }
+
+        // Save Current Paper to Library
+        function savePaperToLibrary() {
+            if (!paperState.schoolName || !paperState.subject) {
+                showToast("Please create a paper first!", true);
+                return;
+            }
+
+            // Assign unique ID if new paper
+            if (!paperState.id) {
+                paperState.id = 'paper_' + Date.now();
+            }
+
+            // Add timestamp
+            paperState.updatedAt = new Date().toLocaleString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: true
+            });
+
+            // Check if paper already exists in library
+            const existingIdx = savedLibrary.findIndex(p => p.id === paperState.id);
+            if (existingIdx !== -1) {
+                savedLibrary[existingIdx] = JSON.parse(JSON.stringify(paperState));
+            } else {
+                savedLibrary.unshift(JSON.parse(JSON.stringify(paperState)));
+            }
+
+            // Save to localStorage
+            localStorage.setItem('examcraft_saved_library', JSON.stringify(savedLibrary));
+            localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+            
+            document.getElementById('total-papers-count').innerText = savedLibrary.length;
+            showToast("Paper saved to your Library successfully!");
+        }
+
+        // Open Saved Papers Library Modal
+        function openLibraryModal() {
+            loadLibraryFromStorage();
+            const container = document.getElementById('library-list-container');
+            container.innerHTML = '';
+
+            if (savedLibrary.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-[#0b0f19]/40 rounded-2xl border border-slate-800/80">
+                        <span class="text-4xl block mb-3">📭</span>
+                        <h4 class="text-base font-bold text-white mb-1">No Saved Papers Found</h4>
+                        <p class="text-xs text-slate-400 font-medium">When you create and click "Save to Library", your papers will appear here.</p>
+                    </div>
+                `;
+            } else {
+                savedLibrary.forEach((paper, idx) => {
+                    let totalQ = 0;
+                    paper.sections.forEach(s => totalQ += s.questions.length);
+
+                    const card = document.createElement('div');
+                    card.className = "bg-[#0b0f19] border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-700 transition shadow-lg";
+                    
+                    card.innerHTML = `
+                        <div class="space-y-1.5 w-full md:w-auto">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="bg-indigo-500/15 text-indigo-300 font-extrabold text-xs px-2.5 py-0.5 rounded-lg border border-indigo-500/30">${paper.subject}</span>
+                                <span class="bg-slate-800 text-slate-300 font-bold text-xs px-2.5 py-0.5 rounded-lg border border-slate-700">Class: ${paper.className}</span>
+                                <span class="text-xs text-slate-400 font-medium">• ${paper.event}</span>
+                            </div>
+                            <h4 class="text-base font-black text-white tracking-wide">${paper.schoolName}</h4>
+                            <div class="flex items-center gap-4 text-xs text-slate-400 font-medium">
+                                <span>❓ ${totalQ} Questions</span>
+                                <span>🎯 ${paper.maxMarks} Marks</span>
+                                <span class="text-slate-500">🕒 Saved: ${paper.updatedAt || 'Recently'}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/80">
+                            <button onclick="loadFromLibrary('${paper.id}')" class="flex-1 md:flex-none justify-center bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3.5 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/20">
+                                <span>✏️</span>
+                                <span>Edit / Load</span>
+                            </button>
+                            
+                            <button onclick="printFromLibrary('${paper.id}', false)" class="flex-1 md:flex-none justify-center bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-bold px-3 py-2 rounded-xl transition text-xs flex items-center gap-1">
+                                <span>🖨️</span>
+                                <span>Print Paper</span>
+                            </button>
+
+                            <button onclick="printFromLibrary('${paper.id}', true)" class="flex-1 md:flex-none justify-center bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold px-3 py-2 rounded-xl transition text-xs flex items-center gap-1">
+                                <span>🔑</span>
+                                <span>Answer Key</span>
+                            </button>
+
+                            <button onclick="deleteFromLibrary('${paper.id}')" class="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-red-500/10 transition ml-auto md:ml-0" title="Delete Paper">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            document.getElementById('library-modal').classList.remove('hidden');
+        }
+
+        function closeLibraryModal() {
+            document.getElementById('library-modal').classList.add('hidden');
+        }
+
+        // Load Paper from Library into Active Editor
+        function loadFromLibrary(id) {
+            const paper = savedLibrary.find(p => p.id === id);
+            if (paper) {
+                paperState = JSON.parse(JSON.stringify(paper));
+                localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+                updateUI();
+                closeLibraryModal();
+                showToast("Paper loaded into editor successfully!");
+            }
+        }
+
+        // Direct Print from Library
+        function printFromLibrary(id, isAnswerKey) {
+            const paper = savedLibrary.find(p => p.id === id);
+            if (paper) {
+                const currentTemp = JSON.parse(JSON.stringify(paperState));
+                paperState = JSON.parse(JSON.stringify(paper));
+                triggerPrint(isAnswerKey);
+                paperState = currentTemp;
+            }
+        }
+
+        // Delete Paper from Library
+        function deleteFromLibrary(id) {
+            if (confirm("Are you sure you want to delete this paper permanently from your library?")) {
+                savedLibrary = savedLibrary.filter(p => p.id !== id);
+                localStorage.setItem('examcraft_saved_library', JSON.stringify(savedLibrary));
+                document.getElementById('total-papers-count').innerText = savedLibrary.length;
+                openLibraryModal();
+                showToast("Paper deleted from library", true);
+            }
+        }
+
+        // Display Toast Notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            document.getElementById('toast-icon').innerText = isError ? '⚠️' : '✔';
+            toast.className = `fixed top-5 right-5 z-50 transform transition-all duration-300 bg-slate-800/95 backdrop-blur-md border ${isError ? 'border-red-500/50 text-red-200' : 'border-emerald-500/50 text-emerald-200'} px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 no-print max-w-sm w-[90%] sm:w-auto translate-y-0 opacity-100`;
+            setTimeout(() => {
+                toast.classList.replace('translate-y-0', 'translate-y-[-150%]');
+                toast.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+
+        // Open Modal for New/Edit Paper Setup
+        function openModal(editMode = false) {
+            isEditingInfo = editMode;
+            if (editMode) {
+                document.getElementById('modal-title').innerText = "Edit Paper Setup";
+                document.getElementById('form-school').value = paperState.schoolName;
+                document.getElementById('form-event').value = paperState.event;
+                document.getElementById('form-subject').value = paperState.subject;
+                document.getElementById('form-class').value = paperState.className;
+                document.getElementById('form-marks').value = paperState.maxMarks;
+                document.getElementById('form-duration').value = paperState.duration;
+                document.getElementById('form-instructions').value = paperState.instructions;
+            } else {
+                document.getElementById('modal-title').innerText = "Create New Question Paper";
+                document.getElementById('paper-form').reset();
+            }
+            document.getElementById('paper-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('paper-modal').classList.add('hidden');
+        }
+
+        // Save Modal Form
+        function submitPaperForm(e) {
+            e.preventDefault();
+            
+            if (!isEditingInfo) {
+                paperState = {
+                    id: 'paper_' + Date.now(),
+                    schoolName: document.getElementById('form-school').value.trim(),
+                    event: document.getElementById('form-event').value,
+                    subject: document.getElementById('form-subject').value.trim(),
+                    className: document.getElementById('form-class').value.trim(),
+                    maxMarks: parseInt(document.getElementById('form-marks').value) || 100,
+                    duration: document.getElementById('form-duration').value.trim(),
+                    instructions: document.getElementById('form-instructions').value.trim(),
+                    updatedAt: '',
+                    sections: [{
+                        id: Date.now(),
+                        title: 'Section A: Multiple Choice Questions',
+                        type: 'MCQ',
+                        sectionMarks: 10,
+                        questions: [
+                            { id: Date.now() + 1, text: '', options: ['', '', '', ''], answer: '0' }
+                        ]
+                    }]
+                };
+                showToast("New paper created successfully!");
+            } else {
+                paperState.schoolName = document.getElementById('form-school').value.trim();
+                paperState.event = document.getElementById('form-event').value;
+                paperState.subject = document.getElementById('form-subject').value.trim();
+                paperState.className = document.getElementById('form-class').value.trim();
+                paperState.maxMarks = parseInt(document.getElementById('form-marks').value) || 100;
+                paperState.duration = document.getElementById('form-duration').value.trim();
+                paperState.instructions = document.getElementById('form-instructions').value.trim();
+                showToast("Paper details updated!");
+            }
+
+            localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+            closeModal();
+            updateUI();
+        }
+
+        // Synchronize UI with State
+        function updateUI() {
+            if (!paperState.schoolName) {
+                document.getElementById('placeholder-screen').classList.remove('hidden');
+                document.getElementById('workspace').classList.add('hidden');
+                document.getElementById('control-bar').classList.add('hidden');
+                
+                // Hide resume button if no active paper exists
+                const resumeBtn = document.getElementById('resume-btn-container');
+                if (resumeBtn) resumeBtn.classList.add('hidden');
+                
+                return;
+            }
+
+            document.getElementById('placeholder-screen').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            document.getElementById('control-bar').classList.remove('hidden');
+
+            document.getElementById('display-school').innerText = paperState.schoolName;
+            document.getElementById('display-event').innerText = paperState.event;
+            document.getElementById('display-sub-class').innerText = `${paperState.subject} (Class ${paperState.className})`;
+            document.getElementById('display-meta').innerText = `${paperState.duration} | ${paperState.maxMarks} Marks`;
+            document.getElementById('display-instructions').innerText = paperState.instructions || 'No general instructions provided.';
+            document.getElementById('target-marks').innerText = paperState.maxMarks;
+
+            renderSections();
+            calculateStats();
+        }
+
+        // Add Section
+        function addNewSection() {
+            const newSec = {
+                id: Date.now(),
+                title: 'New Section Title',
+                type: 'MCQ',
+                sectionMarks: 10,
+                questions: [createEmptyQuestion('MCQ')]
+            };
+            paperState.sections.push(newSec);
+            localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+            updateUI();
+            showToast("Added new section");
+        }
+
+        function createEmptyQuestion(type) {
+            const baseId = Date.now() + Math.floor(Math.random() * 10000);
+            if (type === 'MCQ') {
+                return { id: baseId, text: '', options: ['', '', '', ''], answer: '0' };
+            } else if (type === 'Matching') {
+                return { id: baseId, colA: '', colB: '' };
+            } else {
+                return { id: baseId, text: '', answer: '' };
+            }
+        }
+
+        function deleteSection(secId) {
+            if (confirm("Are you sure you want to delete this entire section?")) {
+                paperState.sections = paperState.sections.filter(s => s.id !== secId);
+                localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+                updateUI();
+                showToast("Section deleted", true);
+            }
+        }
+
+        function changeSectionType(secId, newType) {
+            const sec = paperState.sections.find(s => s.id === secId);
+            if (sec) {
+                sec.type = newType;
+                sec.questions = [createEmptyQuestion(newType)];
+                localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+                updateUI();
+            }
+        }
+
+        function moveSection(secId, direction) {
+            const idx = paperState.sections.findIndex(s => s.id === secId);
+            if (direction === 'up' && idx > 0) {
+                [paperState.sections[idx], paperState.sections[idx - 1]] = [paperState.sections[idx - 1], paperState.sections[idx]];
+            } else if (direction === 'down' && idx < paperState.sections.length - 1) {
+                [paperState.sections[idx], paperState.sections[idx + 1]] = [paperState.sections[idx + 1], paperState.sections[idx]];
+            }
+            localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+            updateUI();
+        }
+
+        function addQuestionToSection(secId) {
+            const sec = paperState.sections.find(s => s.id === secId);
+            if (sec) {
+                sec.questions.push(createEmptyQuestion(sec.type));
+                localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+                updateUI();
+            }
+        }
+
+        function deleteQuestionFromSection(secId, qId) {
+            const sec = paperState.sections.find(s => s.id === secId);
+            if (sec && sec.questions.length > 1) {
+                sec.questions = sec.questions.filter(q => q.id !== qId);
+                localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+                updateUI();
+            } else {
+                showToast("Section must have at least 1 question", true);
+            }
+        }
+
+        // Live Data Binding
+        function syncField(field, value, secId, qId = null, optIdx = null, matchCol = null) {
+            if (secId && qId === null) {
+                const sec = paperState.sections.find(s => s.id === secId);
+                if (sec) {
+                    if (field === 'title') sec.title = value;
+                    if (field === 'marks') {
+                        sec.sectionMarks = parseInt(value) || 0;
+                        calculateStats();
+                    }
+                }
+            } else if (secId && qId !== null) {
+                const sec = paperState.sections.find(s => s.id === secId);
+                if (sec) {
+                    const q = sec.questions.find(qi => qi.id === qId);
+                    if (q) {
+                        if (field === 'text') q.text = value;
+                        if (field === 'answer') q.answer = value;
+                        if (field === 'option' && optIdx !== null) q.options[optIdx] = value;
+                        if (field === 'matching' && matchCol !== null) {
+                            if (matchCol === 'A') q.colA = value;
+                            if (matchCol === 'B') q.colB = value;
+                        }
+                    }
+                }
+            }
+            localStorage.setItem('examcraft_pro_active', JSON.stringify(paperState));
+        }
+
+        // Calculate Stats & Validations
+        function calculateStats() {
+            let totalQ = 0;
+            let totalMarks = 0;
+            paperState.sections.forEach(s => {
+                totalQ += s.questions.length;
+                totalMarks += (parseInt(s.sectionMarks) || 0);
+            });
+
+            document.getElementById('stat-questions').innerText = totalQ;
+            document.getElementById('stat-sections').innerText = paperState.sections.length;
+            
+            const marksEl = document.getElementById('stat-marks');
+            const badge = document.getElementById('marks-badge');
+            const icon = document.getElementById('marks-status-icon');
+            
+            marksEl.innerText = totalMarks;
+
+            if (totalMarks === paperState.maxMarks) {
+                badge.className = "w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl border font-bold flex items-center gap-2 bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm";
+                icon.innerText = "✓ Perfect";
+            } else if (totalMarks > paperState.maxMarks) {
+                badge.className = "w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl border font-bold flex items-center gap-2 bg-red-500/10 border-red-500/30 text-red-300 shadow-sm";
+                icon.innerText = "⚠️ Exceeds Max";
+            } else {
+                badge.className = "w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl border font-bold flex items-center gap-2 bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-sm";
+                icon.innerText = `(${paperState.maxMarks - totalMarks} M remaining)`;
+            }
+        }
+
+        function adjustFontSize(size) {
+            document.getElementById('font-val').innerText = `${size}px`;
+            document.querySelectorAll('.sync-input').forEach(input => {
+                input.style.fontSize = `${size}px`;
+            });
+        }
+
+        // Render Editor DOM
+        function renderSections() {
+            const listEl = document.getElementById('sections-list');
+            listEl.innerHTML = '';
+
+            paperState.sections.forEach((sec, sIdx) => {
+                const secDiv = document.createElement('div');
+                secDiv.className = "bg-[#14192b] border border-slate-800 rounded-3xl overflow-hidden shadow-xl backdrop-blur-sm";
+                
+                let headerHtml = `
+                    <div class="bg-[#101423] border-b border-slate-800 p-4 sm:p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5">
+                        <div class="flex items-center gap-3 w-full md:w-auto">
+                            <span class="bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-600/20 border border-indigo-400/20 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0">${sIdx + 1}</span>
+                            <input type="text" oninput="syncField('title', this.value, ${sec.id})" value="${sec.title}" placeholder="Section Title..." class="bg-transparent text-white font-black text-base focus:outline-none focus:border-b focus:border-indigo-500 w-full">
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-2.5 md:pt-0 border-slate-800/80">
+                            <select onchange="changeSectionType(${sec.id}, this.value)" class="bg-[#0b0f19] border border-slate-800 text-xs text-slate-200 font-bold rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 flex-1 sm:flex-none">
+                                <option value="MCQ" ${sec.type === 'MCQ' ? 'selected' : ''}>MCQ (4 Options)</option>
+                                <option value="Q&A" ${sec.type === 'Q&A' ? 'selected' : ''}>Question & Answer</option>
+                                <option value="Matching" ${sec.type === 'Matching' ? 'selected' : ''}>Matching Type</option>
+                                <option value="Fill Ups" ${sec.type === 'Fill Ups' ? 'selected' : ''}>Fill in the Blanks</option>
+                                <option value="True/False" ${sec.type === 'True/False' ? 'selected' : ''}>True / False</option>
+                            </select>
+                            
+                            <div class="flex items-center gap-1.5 bg-[#0b0f19] border border-slate-800 rounded-xl px-3 py-1.5">
+                                <span class="text-[10px] uppercase font-black text-slate-400">Marks:</span>
+                                <input type="number" oninput="syncField('marks', this.value, ${sec.id})" value="${sec.sectionMarks}" class="bg-transparent text-emerald-400 font-black text-xs w-10 text-center focus:outline-none">
+                            </div>
+
+                            <div class="flex items-center bg-[#0b0f19] border border-slate-800 rounded-xl p-0.5 ml-auto md:ml-0">
+                                <button onclick="moveSection(${sec.id}, 'up')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800" title="Move Up"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></button>
+                                <button onclick="moveSection(${sec.id}, 'down')" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800" title="Move Down"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                            </div>
+                            <button onclick="deleteSection(${sec.id})" class="p-2 text-red-400 hover:text-red-300 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition" title="Delete Section"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        </div>
+                    </div>
+                `;
+
+                let questionsHtml = `<div class="p-4 sm:p-5 space-y-4">`;
+                
+                sec.questions.forEach((q, qIdx) => {
+                    questionsHtml += `
+                        <div class="bg-[#0b0f19] border border-slate-800 p-4 rounded-2xl relative group hover:border-slate-700 transition">
+                            <div class="flex items-start gap-3">
+                                <span class="text-xs sm:text-sm font-black text-indigo-400 mt-2.5 shrink-0">Q${qIdx + 1}.</span>
+                                <div class="flex-grow space-y-3 w-full">
+                    `;
+
+                    if (sec.type === 'MCQ') {
+                        questionsHtml += `
+                            <textarea oninput="syncField('text', this.value, ${sec.id}, ${q.id})" placeholder="Type MCQ question text here..." rows="2" class="sync-input bg-[#14192b] border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-white font-bold placeholder-slate-600 focus:outline-none w-full text-sm">${q.text}</textarea>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                ${['A', 'B', 'C', 'D'].map((letter, i) => `
+                                    <div class="flex items-center gap-2.5 bg-[#101423] border border-slate-800 px-3.5 py-2.5 rounded-xl focus-within:border-indigo-500">
+                                        <span class="text-xs font-black text-slate-400">${letter}</span>
+                                        <input type="text" oninput="syncField('option', this.value, ${sec.id}, ${q.id}, ${i})" value="${q.options[i]}" placeholder="Option ${letter}" class="bg-transparent text-xs text-slate-200 font-semibold placeholder-slate-600 focus:outline-none w-full">
+                                        <input type="radio" name="ans_${q.id}" value="${i}" ${q.answer == i ? 'checked' : ''} onchange="syncField('answer', '${i}', ${sec.id}, ${q.id})" title="Mark as Correct Answer" class="accent-emerald-500 cursor-pointer shrink-0 w-4 h-4">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else if (sec.type === 'Matching') {
+                        questionsHtml += `
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <span class="text-[10px] font-black text-indigo-400 block mb-1 uppercase tracking-wider">Column A (Question Term)</span>
+                                    <input type="text" oninput="syncField('matching', this.value, ${sec.id}, ${q.id}, null, 'A')" value="${q.colA || ''}" placeholder="Left side term" class="bg-[#14192b] border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-xs text-white font-bold focus:outline-none w-full">
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black text-emerald-400 block mb-1 uppercase tracking-wider">Column B (Correct Match)</span>
+                                    <input type="text" oninput="syncField('matching', this.value, ${sec.id}, ${q.id}, null, 'B')" value="${q.colB || ''}" placeholder="Right side match" class="bg-[#14192b] border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-xs text-white font-bold focus:outline-none w-full">
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        questionsHtml += `
+                            <textarea oninput="syncField('text', this.value, ${sec.id}, ${q.id})" placeholder="Type question statement here..." rows="2" class="sync-input bg-[#14192b] border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-white font-bold placeholder-slate-600 focus:outline-none w-full text-sm">${q.text}</textarea>
+                            <input type="text" oninput="syncField('answer', this.value, ${sec.id}, ${q.id})" value="${q.answer || ''}" placeholder="Optional: Type correct answer for Answer Key..." class="bg-[#101423] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3.5 py-2 text-xs text-emerald-300 font-semibold placeholder-slate-600 focus:outline-none w-full">
+                        `;
+                    }
+
+                    questionsHtml += `
+                                </div>
+                                <button onclick="deleteQuestionFromSection(${sec.id}, ${q.id})" class="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-900 transition shrink-0" title="Delete Question">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                questionsHtml += `
+                    <div class="pt-2 flex justify-end">
+                        <button onclick="addQuestionToSection(${sec.id})" class="w-full sm:w-auto justify-center text-xs bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 px-4 py-2.5 rounded-xl flex items-center gap-1.5 font-bold transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                            Add Question to ${sec.type}
+                        </button>
+                    </div>
+                `;
+
+                questionsHtml += `</div>`;
+                secDiv.innerHTML = headerHtml + questionsHtml;
+                listEl.appendChild(secDiv);
+            });
+
+            adjustFontSize(document.getElementById('font-slider').value);
+        }
+
+        // ==========================================
+        // FLICKER-FREE, BOLD & CRISP PRINT ENGINE
+        // ==========================================
+        function triggerPrint(isAnswerKey = false) {
+            const printArea = document.getElementById('print-area');
+            
+            // 1. Build Header & Student Meta
+            let html = `
+                <div style="text-align: center; border-bottom: 2.5px solid #000; padding-bottom: 12px; margin-bottom: 15px;">
+                    <h1 style="font-size: 26px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; color: #000;">${paperState.schoolName}</h1>
+                    <h2 style="font-size: 16px; margin: 6px 0 0 0; font-weight: 700; color: #111;">${paperState.event} ${isAnswerKey ? '— [OFFICIAL ANSWER KEY]' : ''}</h2>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; margin-top: 14px; border-top: 1px dashed #555; padding-top: 8px; color: #000;">
+                        <div><strong>Subject:</strong> ${paperState.subject}</div>
+                        <div><strong>Class:</strong> ${paperState.className}</div>
+                        <div><strong>Time Allowed:</strong> ${paperState.duration}</div>
+                        <div><strong>Max Marks:</strong> ${paperState.maxMarks}</div>
+                    </div>
+                </div>
+            `;
+
+            // 2. Student Info Box (Only for Exam Paper)
+            if (!isAnswerKey) {
+                html += `
+                    <div style="border: 1.5px solid #000; padding: 10px 15px; margin-bottom: 16px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; background: #fff; color: #000;">
+                        <span><strong>Student Name:</strong> ___________________________</span>
+                        <span><strong>Roll No:</strong> _______________</span>
+                        <span><strong>Section:</strong> _______</span>
+                        <span><strong>Date:</strong> _______________</span>
+                    </div>
+                `;
+            }
+
+            // 3. General Instructions
+            if (paperState.instructions && !isAnswerKey) {
+                html += `
+                    <div style="margin-bottom: 20px; font-size: 13px; border-bottom: 1px solid #777; padding-bottom: 10px; color: #000;">
+                        <strong style="text-decoration: underline; font-weight: 800; font-size: 14px;">General Instructions:</strong>
+                        <p style="margin: 5px 0 0 0; line-height: 1.5; font-weight: 600;">${paperState.instructions}</p>
+                    </div>
+                `;
+            }
+
+            // 4. Render Sections & Questions (With BOLD weights: 600 & 700)
+            paperState.sections.forEach((sec) => {
+                html += `
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 14px; font-weight: 900; font-size: 16px; color: #000;">
+                            <span>${sec.title}</span>
+                            ${sec.sectionMarks > 0 ? `<span>[${sec.sectionMarks} Marks]</span>` : ''}
+                        </div>
+                `;
+
+                if (sec.type === 'Matching') {
+                    html += `
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; color: #000;">
+                            <thead>
+                                <tr style="text-align: left; border-bottom: 1.5px solid #000; font-weight: 800;">
+                                    <th style="width: 10%; padding: 8px 0;">S.No.</th>
+                                    <th style="width: 45%; padding: 8px 0;">Column A</th>
+                                    <th style="width: 45%; padding: 8px 0;">${isAnswerKey ? 'Correct Match (Ans)' : 'Column B'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    sec.questions.forEach((q, qIdx) => {
+                        html += `
+                            <tr style="border-bottom: 1px solid #ddd;" class="page-break-avoid">
+                                <td style="padding: 10px 0; font-weight: 800;">(${qIdx + 1})</td>
+                                <td style="padding: 10px 0; font-weight: 600;">${q.colA || '_________________'}</td>
+                                <td style="padding: 10px 0; font-weight: ${isAnswerKey ? '800' : '600'};">
+                                    ${isAnswerKey ? (q.colB || 'N/A') : (q.colB || '_________________')}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `</tbody></table>`;
+
+                } else {
+                    sec.questions.forEach((q, qIdx) => {
+                        html += `
+                            <div style="margin-bottom: 16px; font-size: 14.5px; line-height: 1.6; color: #000;" class="page-break-avoid">
+                                <div style="display: flex;">
+                                    <span style="min-width: 35px; font-weight: 800; font-size: 15px;">Q${qIdx + 1}.</span>
+                                    <div style="flex-grow: 1;">
+                                        <p style="margin: 0; padding: 0; font-weight: 600; font-size: 15px; color: #000;">${q.text || '____________________________________________________________________'}</p>
+                        `;
+
+                        if (sec.type === 'MCQ') {
+                            if (isAnswerKey) {
+                                const ansIdx = parseInt(q.answer) || 0;
+                                html += `<div style="margin-top: 6px; color: #000; font-weight: 800; background: #eee; padding: 4px 8px; border-left: 3px solid #000; display: inline-block;">👉 Correct Answer: (${['A','B','C','D'][ansIdx]}) ${q.options[ansIdx] || ''}</div>`;
+                            } else {
+                                html += `
+                                    <div style="display: flex; flex-wrap: wrap; margin-top: 10px; font-weight: 500;">
+                                        <div style="width: 50%; margin-bottom: 8px;"><strong>(A)</strong> ${q.options[0] || '__________'}</div>
+                                        <div style="width: 50%; margin-bottom: 8px;"><strong>(B)</strong> ${q.options[1] || '__________'}</div>
+                                        <div style="width: 50%; margin-bottom: 8px;"><strong>(C)</strong> ${q.options[2] || '__________'}</div>
+                                        <div style="width: 50%; margin-bottom: 8px;"><strong>(D)</strong> ${q.options[3] || '__________'}</div>
+                                    </div>
+                                `;
+                            }
+                        } else if (isAnswerKey && q.answer) {
+                            html += `<div style="margin-top: 6px; font-weight: 800; background: #eee; padding: 4px 8px; border-left: 3px solid #000; display: inline-block;">👉 Answer: ${q.answer}</div>`;
+                        }
+
+                        html += `
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+            });
+
+            // 5. Footer Signatures for Exam Paper
+            if (!isAnswerKey) {
+                html += `
+                    <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 800; border-top: 1.5px solid #000; padding-top: 15px; color: #000;" class="page-break-avoid">
+                        <span>Invigilator's Signature: ___________________</span>
+                        <span>Examiner's Signature: ___________________</span>
+                    </div>
+                `;
+            }
+
+            // Inject into print area
+            printArea.innerHTML = html;
+            
+            // Allow DOM rendering time before calling window.print()
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
